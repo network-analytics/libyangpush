@@ -4,16 +4,16 @@
 This is a initial repo structure for libyangpush
 
 ## Requirements
-meson
-cmocka
+meson == 1.1.1  
+cmocka == 3.26.4
 
 ## How to run
-```
-$ meson build -Dbsanitize=address,undefined
-$ ninja -C build
+```bash
+meson setup build  
+cd build
+meson compile
 ```
 ## How to run test
-```
-$ ninja -C build test
-$ ./build/run_tests
+```bash
+meson test
 ``` 
