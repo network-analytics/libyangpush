@@ -7,7 +7,7 @@ This is a initial repo structure for libyangpush
 meson == 1.1.1  
 cmocka == 3.26.4
 
-## How to run
+## How to install
 ```bash
 meson setup build  
 cd build
@@ -15,5 +15,7 @@ meson compile
 ```
 ## How to run test
 ```bash
+meson setup build  
+cd build
 meson test
 ``` 
