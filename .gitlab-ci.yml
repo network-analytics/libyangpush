@@ -7,6 +7,14 @@ stages:
 build:
   stage: build
   script:
+    - apt update
+    - apt install cmake libcmocka-dev libpcre2-dev libxml2 libssh-dev libjansson-dev libyang-dev
+    - git clone --depth 1 --branch v2.1.34 https://github.com/CESNET/libnetconf2.git
+    - cd libnetconf2
+    - mkdir build; cd build
+    - cmake ..
+    - make
+    - make install
     - meson setup build
     - cd build
     - meson compile
