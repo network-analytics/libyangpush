@@ -5,6 +5,8 @@ stages:
     - functional-test
 
 default:
+    tags:
+        - libyangpush
     image: nativeci/cpp-meson  
     before_script:
         - ./.ci/setup_docker.sh
