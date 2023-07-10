@@ -1,21 +1,23 @@
-# Initial repo structure
+# libyangpush
 
 ## Introduction
-This is a initial repo structure for libyangpush
+This is a library used for parsing yang push messages and create schema for yang model and yang push subscription.
 
 ## Requirements
-meson == 1.1.1  
-cmocka == 3.26.4
+cmake == 3.16.4
+meson == 1.1.1
+cmocka == 1.1.5
+libxml2 == 2.9.10
 
 ## How to install
 ```bash
-meson setup build  
+meson setup build
 cd build
 meson compile
 ```
 ## How to run test
 ```bash
-meson setup build  
+meson setup build
 cd build
 meson test
 ``` 

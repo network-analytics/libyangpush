@@ -1,7 +1,7 @@
 project(
     'yangpush',
     'c',
-    version : '5.07'
+    version : '0.1'
 )
 cc = meson.get_compiler('c')
 
@@ -23,6 +23,10 @@ project_test_files = [
 
 public_headers = include_directories('src')
 
+project_dependencies = [
+    dependency('LibXml2'),
+]
+
 build_args = []
 
 build_args += [
@@ -33,6 +37,7 @@ build_args += [
 project_target = shared_library(
   meson.project_name(),
   project_source_files,
+  dependencies: project_dependencies,
   install : true,
   c_args : build_args,
 )
@@ -76,7 +81,7 @@ test('test_yangpush',
   executable(
     'test_yangpush',
     files('test/test_yangpush.c'),
-    dependencies: [project_dep, test_dep],
+    dependencies: [project_dependencies, project_dep, test_dep],
     install: false
   )
 )
