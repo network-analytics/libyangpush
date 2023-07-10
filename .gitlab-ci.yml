@@ -5,8 +5,8 @@ stages:
     - functional-test
 
 image:
-  - name: libyangpush-ci
-  - pull_policy: if-not-present
+  name: libyangpush-ci
+  pull_policy: if-not-present
 
 build:
   stage: build
