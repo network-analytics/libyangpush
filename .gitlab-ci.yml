@@ -6,7 +6,9 @@ stages:
 
 
 build:
-  image: libyangpush-ci
+  image:
+    - name: libyangpush-ci
+    - pull_policy: if-not-present
   stage: build
   tags:
     - libyangpush
@@ -16,7 +18,9 @@ build:
     - meson compile
 
 unit-test:
-  image: libyangpush-ci
+  image:
+    - name: libyangpush-ci
+    - pull_policy: if-not-present
   stage: unit-test
   tags:
     - libyangpush
@@ -26,7 +30,9 @@ unit-test:
     - meson test
 
 function-test:
-  image: libyangpush-ci
+  image:
+    - name: libyangpush-ci
+    - pull_policy: if-not-present
   stage: functional-test
   tags:
     - libyangpush
