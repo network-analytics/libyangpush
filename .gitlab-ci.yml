@@ -4,9 +4,9 @@ stages:
     - unit-test
     - functional-test
 
-image: libyangpush-ci
 
 build:
+  image: libyangpush-ci
   stage: build
   tags:
     - libyangpush
@@ -16,6 +16,7 @@ build:
     - meson compile
 
 unit-test:
+  image: libyangpush-ci
   stage: unit-test
   tags:
     - libyangpush
@@ -25,6 +26,7 @@ unit-test:
     - meson test
 
 function-test:
+  image: libyangpush-ci
   stage: functional-test
   tags:
     - libyangpush
