@@ -4,10 +4,9 @@ stages:
     - unit-test
     - functional-test
 
-default:
-    tags:
-        - libyangpush
-    image: libyangpush-ci
+tags:
+    - libyangpush
+image: libyangpush-ci
 
 build:
   stage: build
