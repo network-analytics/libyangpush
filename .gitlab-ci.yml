@@ -4,12 +4,12 @@ stages:
     - unit-test
     - functional-test
 
-tags:
-    - libyangpush
 image: libyangpush-ci
 
 build:
   stage: build
+  tags:
+    - libyangpush
   script:
     - meson setup build
     - cd build
@@ -17,6 +17,8 @@ build:
 
 unit-test:
   stage: unit-test
+  tags:
+    - libyangpush
   script:
     - meson setup build
     - cd build
@@ -24,5 +26,7 @@ unit-test:
 
 function-test:
   stage: functional-test
+  tags:
+    - libyangpush
   script:
     - echo "This job will run functional tests, based on netopeer"
