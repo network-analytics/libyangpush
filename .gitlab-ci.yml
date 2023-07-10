@@ -4,17 +4,14 @@ stages:
     - unit-test
     - functional-test
 
+default:
+    image: nativeci/cpp-meson  
+    before_script:
+        - ./.ci/setup_docker.sh
+
 build:
   stage: build
   script:
-    - apt update
-    - apt install cmake libcmocka-dev libpcre2-dev libxml2 libssh-dev libjansson-dev libyang-dev
-    - git clone --depth 1 --branch v2.1.34 https://github.com/CESNET/libnetconf2.git
-    - cd libnetconf2
-    - mkdir build; cd build
-    - cmake ..
-    - make
-    - make install
     - meson setup build
     - cd build
     - meson compile
@@ -22,4 +19,11 @@ build:
 unit-test:
   stage: unit-test
   script:
+    - meson setup build
+    - cd build
     - meson test
+
+function-test:
+  stage: functional-test
+  script:
+    - echo "This job will run functional tests, based on netopeer"
