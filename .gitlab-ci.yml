@@ -5,7 +5,7 @@ stages:
     - functional-test
 
 image:
-  name: registry-eu.inhuawei.com:5050/libyangpush-ci:v1.1.0
+  name: registry-eu.inhuawei.com:5050/libyangpush-ci:v1.2.0
   entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
 
 build:
