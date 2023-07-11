@@ -4,7 +4,7 @@ ENV GIT_SSL_NO_VERIFY=1
 
 RUN apt update
 
-RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install git wget libtool libpython3-dev libssh-dev libjansson-dev libyang-dev python3 pkgconf cmake -y
+RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install git g++ wget libtool libpython3-dev libssh-dev libjansson-dev libyang-dev python3 pkgconf cmake -y
 
 # Install m4@1.4.19
 RUN wget --no-check-certificate https://ftp.gnu.org/gnu/m4/m4-1.4.19.tar.gz
@@ -49,3 +49,7 @@ RUN cd xz-utils && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT
 # Install libxml2@2.11.4
 RUN wget --no-check-certificate https://github.com/GNOME/libxml2/archive/refs/tags/v2.11.4.tar.gz
 RUN tar xvf v2.11.4.tar.gz && cd libxml2-2.11.4 && ./autogen.sh && CFLAGS='-O2 -fno-semantic-interposition' ./configure && make install
+
+# Install ninja@1.11.1
+RUN git clone --depth 1 --branch v1.11.1 https://github.com/ninja-build/ninja.git ninja
+RUN cd ninja && mkdir build && cd build && cmake .. && make install
