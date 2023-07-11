@@ -6,6 +6,7 @@ stages:
 
 image:
   name: registry-eu.inhuawei.com:5050/libyangpush-ci
+  entrypoint: [ '/bin/bash', '-c', 'ln -snf /bin/bash /bin/sh && /bin/bash -c $0' ]
 
 build:
   stage: build
