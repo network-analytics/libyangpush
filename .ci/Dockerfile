@@ -1,10 +1,16 @@
-FROM nativeci/cpp-meson
+FROM ubuntu
 
 ENV GIT_SSL_NO_VERIFY=1
 
 RUN apt update
 
-RUN apt install autoconf libtool automake libpython3-dev libssh-dev libjansson-dev libyang-dev -y
+RUN apt install git autoconf libtool automake libpython3-dev libssh-dev libjansson-dev libyang-dev python3 pkgconf cmake -y
+
+# Install meson
+RUN git clone --depth 1 --branch 1.1.1 https://github.com/mesonbuild/meson meson
+RUN cd meson && chmod +x meson.py && ln -s $PWD/meson.py /bin/meson
+
+RUN meson --version
 
 # Install cmocka 1.1.7
 RUN git clone --depth 1 --branch cmocka-1.1.7 https://gitlab.com/cmocka/cmocka.git cmocka
