@@ -30,6 +30,10 @@ RUN cd libtool-2.4.7 && ./configure && make install
 RUN git clone --depth 1 --branch pkgconf-1.9.5 https://github.com/pkgconf/pkgconf.git pkgconf
 RUN cd pkgconf && ./autogen.sh && ./configure && make install
 
+# Install cmake@3.26.4
+RUN git clone --depth 1 --branch v3.26.4 https://github.com/Kitware/CMake.git cmake
+RUN cd cmake && mkdir build && cd build && cmake .. && make install
+
 # Install meson@1.1.1
 RUN git clone --depth 1 --branch 1.1.1 https://github.com/mesonbuild/meson meson
 RUN cd meson && chmod +x meson.py && ln -s $PWD/meson.py /bin/meson
