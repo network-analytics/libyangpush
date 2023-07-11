@@ -5,6 +5,7 @@ ENV GIT_SSL_NO_VERIFY=1
 RUN apt update
 
 RUN apt install git autoconf libtool automake libpython3-dev libssh-dev libjansson-dev libyang-dev python3 pkgconf cmake -y
+RUN ln -snf /bin/bash /bin/sh
 
 # Install meson
 RUN git clone --depth 1 --branch 1.1.1 https://github.com/mesonbuild/meson meson
