@@ -98,7 +98,7 @@ static void test_parse_xpath(void** state)
     //text1
     doc = xmlParseDoc((xmlChar*)text1);
     node = xmlDocGetRootElement(doc); //parsing the xml text
-    assert_int_equal(libyangpush_parse_xpath(node, &output1), 1);
+    assert_int_equal(libyangpush_parse_xpath(node, &output1), XPATH_NAMESPACE_FOUND);
     assert_string_equal(output1, "urn:example:yang:a-module");
     xmlFreeDoc(doc);
     free(output1);
@@ -106,7 +106,7 @@ static void test_parse_xpath(void** state)
     //text2
     doc = xmlParseDoc((xmlChar*)text2);
     node = xmlDocGetRootElement(doc);
-    assert_int_equal(libyangpush_parse_xpath(node, &output2), 2);
+    assert_int_equal(libyangpush_parse_xpath(node, &output2), XPATH_MODULE_NAME_FOUND);
     assert_string_equal(output2, "a-module");
     xmlFreeDoc(doc);
     free(output2);
@@ -114,20 +114,95 @@ static void test_parse_xpath(void** state)
     //text3
     doc = xmlParseDoc((xmlChar*)text3);
     node = xmlDocGetRootElement(doc);
-    assert_int_equal(libyangpush_parse_xpath(node, &output3), 0);
+    assert_int_equal(libyangpush_parse_xpath(node, &output3), XPATH_PARSED_FAILED);
     assert_null(output3);
     xmlFreeDoc(doc);
 
     //text4
     doc = xmlParseDoc((xmlChar*)text4);
     node = xmlDocGetRootElement(doc);
-    assert_int_equal(libyangpush_parse_xpath(node, &output4), 0);
+    assert_int_equal(libyangpush_parse_xpath(node, &output4), XPATH_PARSED_FAILED);
     assert_null(output4);
     xmlFreeDoc(doc);
 
     //For NULL node
-    assert_int_equal(libyangpush_parse_xpath(NULL, &output5), 0);
+    assert_int_equal(libyangpush_parse_xpath(NULL, &output5), XPATH_PARSED_FAILED);
     assert_null(output5); 
+    return;
+}
+
+static void test_parse_subtree(void** state)
+{
+    xmlDocPtr doc= NULL;
+    xmlNodePtr node;
+    char *output1 = NULL, *output2 = NULL, *output3 = NULL, *output4 = NULL, *output5 = NULL, *output6 = NULL;
+    //A valid example for returning namespace
+    char text1[300] =
+            "<datastore-subtree-filter xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-push\">"
+                "<a:a-container xmlns:a=\"urn:example:yang:a-module\" xmlns:d=\"urn:example:yang:d-module\">"
+                    "<d:y/>"
+                "</a:a-container>"
+            "</datastore-subtree-filter>";
+    char text2[300] =
+           "<datastore-subtree-filter xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-push\">"
+                "<a xmlns=\"urn:example:yang:a-module\">"
+                    "<y xmlns:d=\"urn:example:yang:d-module\"/>"
+                "</a>"
+            "</datastore-subtree-filter>";
+    char text3[200] = 
+            "<datastore-subtree-filter xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-push\">"
+            "</datastore-subtree-filter>";
+    char text4[100] = 
+            "<something-wrong xmlns=\"some:namespace\">"
+            "</something-wrong>";
+    char text5[300] =
+            "<datastore-subtree-filter xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-push\">"
+                "<a:a-container xmlns:d=\"urn:example:yang:d-module\" xmlns:a=\"urn:example:yang:a-module\">"
+                    "<d:y/>"
+                "</a:a-container>"
+            "</datastore-subtree-filter>";
+
+    //text1
+    doc = xmlParseDoc((xmlChar*)text1);
+    node = xmlDocGetRootElement(doc); //parsing the xml text
+    assert_int_equal(libyangpush_parse_subtree(node, &output1), SUBTREE_NAMESPACE_FOUND);
+    assert_string_equal(output1, "urn:example:yang:a-module");
+    xmlFreeDoc(doc);
+    free(output1);
+
+    //text2
+    doc = xmlParseDoc((xmlChar*)text2);
+    node = xmlDocGetRootElement(doc); //parsing the xml text
+    assert_int_equal(libyangpush_parse_subtree(node, &output2), SUBTREE_NAMESPACE_FOUND);
+    assert_string_equal(output2, "urn:example:yang:a-module");
+    free(output2);
+    xmlFreeDoc(doc);
+
+    //text3
+    doc = xmlParseDoc((xmlChar*)text3);
+    node = xmlDocGetRootElement(doc); //parsing the xml text
+    assert_int_equal(libyangpush_parse_subtree(node, &output3), SUBTREE_PARSED_FAILED);
+    assert_null(output3); 
+    xmlFreeDoc(doc);
+
+    //text4
+    doc = xmlParseDoc((xmlChar*)text4);
+    node = xmlDocGetRootElement(doc); //parsing the xml text
+    assert_int_equal(libyangpush_parse_subtree(node, &output4), SUBTREE_PARSED_FAILED);
+    assert_null(output4);
+    xmlFreeDoc(doc);
+
+    //text5
+    doc = xmlParseDoc((xmlChar*)text5);
+    node = xmlDocGetRootElement(doc); //parsing the xml text
+    assert_int_equal(libyangpush_parse_subtree(node, &output5), SUBTREE_NAMESPACE_FOUND);
+    assert_string_equal(output5, "urn:example:yang:a-module");
+    xmlFreeDoc(doc);
+    free(output5);
+
+    //For NULL node
+    assert_int_equal(libyangpush_parse_xpath(NULL, &output6), SUBTREE_PARSED_FAILED);
+    assert_null(output6); 
     return;
 }
 
@@ -136,7 +211,8 @@ int main(void)
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_pattern_match),
         cmocka_unit_test(test_parse_xpath),
-        cmocka_unit_test(test_find_namespace)
+        cmocka_unit_test(test_find_namespace),
+        cmocka_unit_test(test_parse_subtree)
     };
     
     return cmocka_run_group_tests(tests, NULL, NULL);

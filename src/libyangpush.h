@@ -9,6 +9,12 @@ typedef enum
     XPATH_MODULE_NAME_FOUND
 }xpath_parsing_err_code_t;
 
+typedef enum
+{
+    SUBTREE_PARSED_FAILED,
+    SUBTREE_NAMESPACE_FOUND
+}subtree_parsing_err_code_t;
+
 #define ERR_MSG_CLEANUP(msg) \
         fprintf(stderr, "%s", msg); \
         goto cleanup;
@@ -45,3 +51,12 @@ char* libyangpush_find_namespace_for_prefix(xmlNs **namespaces, char *prefix);
  * @return return the type xpath_parsing_err_code_t
 */
 xpath_parsing_err_code_t libyangpush_parse_xpath(xmlNodePtr datastore_xpath, char **result);
+
+/** 
+ * Parse the input datastore-xpath-filter node.
+ * @param darastore_subtree the xml node for field 'datastore-subtree-filter'
+ * @param result the char pointer where the result is put
+ * 
+ * @return return the type xpath_parsing_err_code_t
+*/
+subtree_parsing_err_code_t libyangpush_parse_subtree(xmlNodePtr datastore_subtree, char** result);
