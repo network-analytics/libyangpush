@@ -1,5 +1,4 @@
 stages:
-    - build-test-docker
     - build
     - unit-test
     - functional-test
@@ -25,7 +24,7 @@ unit-test:
     - cd build
     - meson test
 
-function-test:
+functional-test:
   stage: functional-test
   tags:
     - libyangpush
