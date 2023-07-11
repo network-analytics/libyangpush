@@ -5,8 +5,7 @@ stages:
     - functional-test
 
 image:
-  name: libyangpush-ci
-  pull_policy: if-not-present
+  name: registry-eu.inhuawei.com:5050/libyangpush-ci
 
 build:
   stage: build
