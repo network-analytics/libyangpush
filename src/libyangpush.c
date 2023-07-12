@@ -105,35 +105,40 @@ xpath_parsing_err_code_t libyangpush_parse_xpath(xmlNodePtr datastore_xpath, cha
     return parsing_result;
 }
 
-subtree_parsing_err_code_t libyangpush_parse_subtree(xmlNodePtr datastore_subtree, char** result)
+size_t libyangpush_parse_subtree(xmlNodePtr datastore_subtree, char ***result)
 {
-    if (datastore_subtree == NULL || strcmp((char*)datastore_subtree->name, "datastore-subtree-filter")) { //if this is not the datastore-xpath-filter field, parsed fail
-        return SUBTREE_PARSED_FAILED;
-    }
+    int child_index = 0;
 
-    xmlNodePtr subtree = datastore_subtree->children; //get the subtree node
+    if (datastore_subtree == NULL || strcmp((char*)datastore_subtree->name, "datastore-subtree-filter")) { //if this is not the datastore-xpath-filter field, parsed fail
+        return 0;
+    }
+    xmlNodePtr subtree = datastore_subtree->children; //get the first subtree node
     if(subtree == NULL) {
         fprintf(stderr, "%s", "[libyangpush_parse_subtree]Invalid subtree\n");
-        return SUBTREE_PARSED_FAILED;
-    }
-    xmlNs *subtree_namespace = subtree->nsDef;
-    if(subtree_namespace == NULL) {
-        fprintf(stderr, "%s", "[libyangpush_parse_subtree]Invalid subtree\n");
-        return SUBTREE_PARSED_FAILED;
+        return 0;
     }
 
-    if(subtree->ns != NULL && subtree->ns->prefix != NULL) { //If the node has namespace prefix
-        char* namespace = libyangpush_find_namespace_for_prefix(&subtree_namespace, (char*)subtree->ns->prefix);//check the namespace for the namespace prefix 
-        if(namespace != NULL) {
-            *result = (char*)calloc((strlen(namespace)+1), sizeof(char));
-            strncpy(*result, (char*)namespace, strlen((char*)namespace));
-            return SUBTREE_NAMESPACE_FOUND;
+    if(xmlChildElementCount(datastore_subtree)) { //Check num of child. Allocate memory for result pointer
+        *result = (char**)malloc(xmlChildElementCount(datastore_subtree)*sizeof(char*));
+    }
+    
+    xmlNs *subtree_namespace;
+    while(subtree != NULL) {
+        subtree_namespace = subtree->ns;
+        if(subtree_namespace == NULL) {
+            fprintf(stderr, "%s", "[libyangpush_parse_subtree]Invalid subtree\n");
+            for(int i = 0; i < child_index; i++){ //free the previously allocated space
+                free((*result)[i]);
+            }
+            free(*result);
+            return 0;
         }
+        else if(subtree->ns->href != NULL) {
+            (*result)[child_index] = (char*)calloc((strlen((char*)subtree->ns->href)+1), sizeof(char));
+            strncpy((*result)[child_index], (char*)subtree->ns->href, strlen((char*)subtree->ns->href));
+            (child_index)++;
+        }
+        subtree = subtree->next;
     }
-    else { //The node has no prefix, the first one will be the one
-        *result = (char*)calloc((strlen((char*)subtree->nsDef->href)+1), sizeof(char));
-        strncpy(*result, (char*)subtree->nsDef->href, strlen((char*)subtree->nsDef->href));
-        return SUBTREE_NAMESPACE_FOUND;
-    }
-    return SUBTREE_PARSED_FAILED;
+    return child_index;
 }
