@@ -1,0 +1,32 @@
+stages:
+    - build
+    - unit-test
+    - functional-test
+
+image:
+  name: registry-eu.inhuawei.com:5050/libyangpush-ci:v1.3.0
+
+build:
+  stage: build
+  tags:
+    - libyangpush
+  script:
+    - meson setup build
+    - cd build
+    - meson compile
+
+unit-test:
+  stage: unit-test
+  tags:
+    - libyangpush
+  script:
+    - meson setup build
+    - cd build
+    - meson test
+
+functional-test:
+  stage: functional-test
+  tags:
+    - libyangpush
+  script:
+    - echo "This job will run functional tests, based on netopeer"
