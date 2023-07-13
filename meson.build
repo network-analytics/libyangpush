@@ -17,14 +17,25 @@ project_source_files = [
 ]
 
 project_test_files = [
-  'test/test_netconf.c',
-  'test/test_yangpush.c'
+  'test/test_find_dependency.c',
+  'test/test_yangpush.c',
+  'test/test_tool.c'
 ]
 
 public_headers = include_directories('src')
 
+libyang_dep = cc.find_library('libyang', 
+  dirs: ['/usr/local/lib']
+)
+
+libcdada_dep = cc.find_library('libcdada', 
+  dirs: ['/usr/local/lib']
+)
+
 project_dependencies = [
     dependency('LibXml2'),
+    libyang_dep,
+    libcdada_dep,
 ]
 
 build_args = []
@@ -70,7 +81,7 @@ test_dep = declare_dependency(
 
 test('test_tool',
   executable(
-    'test_netconf',
+    'test_tool',
     files('test/test_tool.c'),
     dependencies: [project_dep, test_dep],
     install: false
@@ -81,6 +92,15 @@ test('test_yangpush',
   executable(
     'test_yangpush',
     files('test/test_yangpush.c'),
+    dependencies: [project_dependencies, project_dep, test_dep],
+    install: false
+  )
+)
+
+test('test_find_dependency',
+  executable(
+    'test_find_dependency',
+    files('test/test_find_dependency.c'),
     dependencies: [project_dependencies, project_dep, test_dep],
     install: false
   )

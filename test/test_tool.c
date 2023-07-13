@@ -5,17 +5,15 @@
 #include <cmocka.h>
 #include "tool.h"
 
-static void test_subtract(void** state){
-    (void) state; /* unused */
-
-	assert_int_equal(subtract(3, 3), 0);
-	assert_int_equal(subtract(3, -3), 6);
+static void test_djb2(void** state){
+	assert_int_equal(djb2("helloworld"), 0x72711934fffdad81);
+    assert_int_not_equal(djb2("libyangpush"), 0);
     return;
 }
 
 int main(void){
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(test_subtract),
+        cmocka_unit_test(test_djb2),
     };
     
     return cmocka_run_group_tests(tests, NULL, NULL);

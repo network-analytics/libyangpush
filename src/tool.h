@@ -1,1 +1,1 @@
-int subtract(int a, int b);
+unsigned long djb2(char *str);

@@ -1,6 +1,9 @@
 #include <libxml/tree.h>
 #include <regex.h>
 #include <string.h>
+#include <libyang/tree_schema.h>
+#include <libyang/libyang.h>
+#include <cdada/map.h>
 //Error codes
 typedef enum
 {
@@ -9,9 +12,24 @@ typedef enum
     XPATH_MODULE_NAME_FOUND
 }xpath_parsing_err_code_t;
 
+typedef enum
+{
+    FIND_DEPENDENCY_SUCCESS,
+    INSERT_FAIL,
+    INVALID_PARAMETER
+}find_dependency_err_code_t;
+
 #define ERR_MSG_CLEANUP(msg) \
         fprintf(stderr, "%s", msg); \
         goto cleanup;
+
+/**
+ * @brief cache the yang code and module name
+ */
+struct module_info{
+    char    *name;   /* The name of this module in the set */
+    char    *yang_code; /* The yang code of this module */
+};
 
 /** 
  * Perform pattern match for string
@@ -56,3 +74,16 @@ xpath_parsing_err_code_t libyangpush_parse_xpath(xmlNodePtr datastore_xpath, cha
  * @return return the number of modules found in subtree. Returning 0 means no module found or parsing error
 */
 size_t libyangpush_parse_subtree(xmlNodePtr datastore_subtree, char ***result);
+
+/**
+ * Find the import module for the passed in 'imported_module'
+ * the 'module_set' stores all modules concerned in a find_dependency
+ * the found module will call find_dependency. The process is recursive.
+ * 
+ * @param num_of_imports the number of imported module that's stored in the 'imported_module' sized array
+ * @param imported_module the sized array for all import module of one module
+ * @param module_set the cdada map that stores all modules
+ * 
+ * @return the error code for find_dependency
+*/
+find_dependency_err_code_t libyangpush_find_import(int num_of_imports, struct lysp_import *imported_module, cdada_map_t *module_set);
