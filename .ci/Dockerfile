@@ -57,3 +57,11 @@ RUN tar xvf v2.11.4.tar.gz && cd libxml2-2.11.4 && ./autogen.sh && CFLAGS='-O2 -
 # Install ninja@1.11.1
 RUN git clone --depth 1 --branch v1.11.1 https://github.com/ninja-build/ninja.git ninja
 RUN cd ninja && mkdir build && cd build && cmake .. && make install
+
+# Install libyang@v2.1.80
+RUN git clone --depth 1 --branch v2.1.80 https://github.com/CESNET/libyang.git libyang
+RUN cd libyang && mkdir build && cd build && cmake .. && make install
+
+# Install libcdada@v0.4.0
+RUN git clone --depth 1 --branch v0.4.0 https://github.com/msune/libcdada.git libcdada
+RUN cd libcdada && sh autogen.sh && cd build && ../configure && make install
