@@ -9,6 +9,22 @@
 #include "libyangpush.h"
 #include "tool.h"
 
+/* A helper function */
+char* load_yang_example(char *filename) {
+    char* text;
+
+    FILE *fptr = fopen(filename, "r");
+    fseek(fptr, 0, SEEK_END);
+    int flen = ftell(fptr); //file length
+    fseek(fptr, 0, SEEK_SET); 
+
+    text = (char*)calloc((flen+1), sizeof(char));
+    fread(text, flen, 1, fptr); 
+    fclose(fptr);
+
+    return text;
+}
+
 static void test_find_import(void** state)
 {
     struct ly_ctx* ctx;
@@ -20,15 +36,8 @@ static void test_find_import(void** state)
         return;
     }
 
-    // read b-module yang code from file
-    FILE *fptr = fopen("../resources/b-module.yang", "r");
-    fseek(fptr, 0, SEEK_END);
-    int flen = ftell(fptr); //file length
-    fseek(fptr, 0, SEEK_SET); 
-
-    bmodule = (char*)calloc((flen+1), sizeof(char));
-    fread(bmodule, flen, 1, fptr); 
-    fclose(fptr);
+    // load b-module yang code from file
+    bmodule = load_yang_example("../resources/b-module.yang");
 
     //load a-module and its import into context
     ly_ctx_load_module(ctx, "a-module", NULL, NULL);
