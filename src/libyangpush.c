@@ -11,13 +11,19 @@ char* libyangpush_pattern_match(char* pattern, char* string)
     char* result = NULL;
 
     if(pattern == NULL || string == NULL) {
-        ERR_MSG_CLEANUP("[libyangpush_pattern_match]Invalid arguments\n");
+    #if debug
+        fprintf(stderr, "[libyangpush_pattern_match]Invalid arguments");
+    #endif
+        goto cleanup;
     }
 
     has_pattern_matched = regcomp(&regex_pattern, pattern, REG_EXTENDED); //Compile the pattern, return 0 if successfuel, vice versa
 
     if (has_pattern_matched) {
-        ERR_MSG_CLEANUP("[libyangpush_pattern_match]pattern compilation filed\n");
+#if debug
+        fprintf(stderr, "[libyangpush_pattern_match][libyangpush_pattern_match]pattern compilation filed");
+#endif
+        goto cleanup;
     }
     has_pattern_matched = regexec(&regex_pattern, string, maxMatches, matched_string_offset, REG_EXTENDED);
     if (has_pattern_matched == REG_NOERROR) { //find match
@@ -29,7 +35,10 @@ char* libyangpush_pattern_match(char* pattern, char* string)
     }
     // If pattern not found
     else if (has_pattern_matched == REG_NOMATCH) {
-        ERR_MSG_CLEANUP("[libyangpush_pattern_match]Pattern not found.\n");
+#if debug
+        fprintf(stderr, "[libyangpush_pattern_match]Pattern not found.\n");
+#endif
+        goto cleanup;
     }
 
 cleanup:
@@ -40,7 +49,9 @@ cleanup:
 char* libyangpush_find_namespace_for_prefix(xmlNs** namespaces, char *xpath_prefix)
 {
     if(namespaces == NULL || xpath_prefix == NULL) {
+#if debug
         fprintf(stderr, "%s", "[libyangpush_find_namespace_for_prefix]Invalid arguments\n");
+#endif
         return NULL;
     }
     /*check if this namespace has no prefix, or if the prefix not equal to xpath_prefix*/
@@ -115,7 +126,9 @@ size_t libyangpush_parse_subtree(xmlNodePtr datastore_subtree, char ***result)
     }
     xmlNodePtr subtree = datastore_subtree->children; //get the first subtree node
     if(subtree == NULL) {
+#if debug
         fprintf(stderr, "%s", "[libyangpush_parse_subtree]Invalid subtree\n");
+#endif
         return 0;
     }
 
@@ -127,7 +140,9 @@ size_t libyangpush_parse_subtree(xmlNodePtr datastore_subtree, char ***result)
     while(subtree != NULL) {
         subtree_namespace = subtree->ns;
         if(subtree_namespace == NULL) {
+#if debug
             fprintf(stderr, "%s", "[libyangpush_parse_subtree]Invalid subtree\n");
+#endif
             for(int i = 0; i < child_index; i++){ //free the previously allocated space
                 free((*result)[i]);
             }
@@ -147,7 +162,9 @@ size_t libyangpush_parse_subtree(xmlNodePtr datastore_subtree, char ***result)
 find_dependency_err_code_t libyangpush_find_import(int num_of_imports, struct lysp_import *imported_module, cdada_map_t *module_set)
 {
     if(imported_module == NULL || num_of_imports == 0){
+#if debug
         fprintf(stderr, "%s", "[libyangpush_find_import]parameter imported_module is NULL\n");
+#endif
         return INVALID_PARAMETER;
     }
 
@@ -163,7 +180,9 @@ find_dependency_err_code_t libyangpush_find_import(int num_of_imports, struct ly
             yang_module_info->name = (char*)(imported_module->module->name);
 
             if(cdada_map_insert(module_set, &hash, yang_module_info) != CDADA_SUCCESS) { //inserted the module_info struct into map
+#if debug
                 fprintf(stderr, "%s%s", "[libyangpush_find_import]Fail when inserting \n", imported_module->name);
+#endif
                 return INSERT_FAIL;
             }
         }

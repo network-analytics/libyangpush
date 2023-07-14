@@ -19,10 +19,6 @@ typedef enum
     INVALID_PARAMETER
 }find_dependency_err_code_t;
 
-#define ERR_MSG_CLEANUP(msg) \
-        fprintf(stderr, "%s", msg); \
-        goto cleanup;
-
 /**
  * @brief cache the yang code and module name
  */
