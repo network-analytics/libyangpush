@@ -186,10 +186,6 @@ find_dependency_err_code_t libyangpush_find_import(int num_of_imports, struct ly
                 return INSERT_FAIL;
             }
         }
-        else if (cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_SUCCESS) { //modules is cached
-            imported_module++;
-            continue;
-        }
         imported_module++;
     }
     
