@@ -1,11 +1,20 @@
 project(
     'yangpush',
     'c',
-    version : '0.1'
+    version : '0.1',
+    default_options: [
+      'c_std=c99'
+    ]
 )
 cc = meson.get_compiler('c')
 
 project_description = 'libyangpush'
+
+if meson.get_compiler('c').has_multi_arguments('-Wall', '-Wextra', '-pedantic', '-Werror')
+    add_project_arguments('-Wall', language : ['c'])
+    add_project_arguments('-Wextra', language : ['c'])
+    add_project_arguments('-pedantic', language : ['c'])
+endif
 
 project_headers = [
   'src/libyangpush.h'
