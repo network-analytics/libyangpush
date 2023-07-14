@@ -2,9 +2,7 @@ FROM ubuntu:20.04
 
 ENV GIT_SSL_NO_VERIFY=1
 
-RUN apt update
-
-RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install git g++ wget libtool libpython3-dev libssh-dev libjansson-dev libyang-dev python3 pkgconf cmake -y
+RUN apt update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install git g++ wget libtool libpython3-dev libssh-dev libjansson-dev libyang-dev python3 pkgconf cmake -y
 
 # Install m4@1.4.19
 RUN wget --no-check-certificate https://ftp.gnu.org/gnu/m4/m4-1.4.19.tar.gz
@@ -44,7 +42,7 @@ RUN cd cmocka && mkdir build && cd build && cmake .. && make install
 
 # Install pcre2@10.42
 RUN git clone --depth 1 --branch pcre2-10.42 https://github.com/PCRE2Project/pcre2.git pcre2
-RUN cd pcre2 && mkdir build && cd build && cmake .. && make install
+RUN cd pcre2 && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON .. && make install
 
 # Install xz-utils@5.4.3 (libxml2 dep)
 RUN git clone --depth 1 --branch v5.4.3 https://git.tukaani.org/xz.git xz-utils
