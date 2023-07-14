@@ -6,7 +6,7 @@
 #include "tool.h"
 
 static void test_djb2(void** state){
-	assert_int_equal(djb2("helloworld"), 0x72711934fffdad81);
+    assert_int_equal(djb2("helloworld"), 0x72711934fffdad81);
     assert_int_not_equal(djb2("libyangpush"), 0);
     return;
 }
