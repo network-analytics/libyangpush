@@ -67,7 +67,7 @@ project_dep = declare_dependency(
   link_with: project_target
 )
 
-# make this library usable from sysrem's package manager
+# make this library usable from system's package manager
 
 install_headers(project_headers, subdir : meson.project_name())
 
