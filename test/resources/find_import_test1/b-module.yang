@@ -1,0 +1,21 @@
+module b-module {
+  yang-version 1.1;
+  namespace "urn:example:yang:b-module";
+  prefix b;
+
+  revision 2023-06-13;
+
+  typedef myenum {
+    type enumeration {
+      enum "zero";
+    }
+  }
+
+  typedef bar {
+    type enumeration {
+      enum "zero";
+    }
+    description
+      "test";
+  }
+}

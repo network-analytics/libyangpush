@@ -1,0 +1,21 @@
+module a-module {
+  yang-version 1.1;
+  namespace "urn:example:yang:a-module";
+  prefix a;
+
+  import b-module {
+    prefix b;
+    revision-date 2023-06-13;
+  }
+
+  container a {
+    leaf x{
+      type b:bar;
+    }
+  }
+
+  container something{
+
+  }
+
+}

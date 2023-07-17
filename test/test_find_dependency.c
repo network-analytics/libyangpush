@@ -27,49 +27,56 @@ char* load_yang_example(char *filename) {
 
 static void test_find_import(void** state)
 {
-    struct ly_ctx* ctx;
-    char *bmodule;
-    char search_dir[50] = "../modules/";
-    int return_check = ly_ctx_new(search_dir, 1, &ctx);
-    if(return_check != LY_SUCCESS){
+    struct ly_ctx *test1_ctx, *test2_ctx;
+    char *test1_bmodule_text;
+    int return_check1 = ly_ctx_new("../test/resources/find_import_test1", 1, &test1_ctx);
+    int return_check2 = ly_ctx_new("../test/resources/test2", 1, &test2_ctx);
+    if(return_check1 != LY_SUCCESS || return_check2 != LY_SUCCESS){
         fprintf(stderr, "%s", "context creation error\n");
         return;
     }
 
     // load b-module yang code from file
-    bmodule = load_yang_example("../resources/b-module.yang");
+    test1_bmodule_text = load_yang_example("../test/resources/find_import_test1/b-module.yang");
 
-    //load a-module and its import into context
-    ly_ctx_load_module(ctx, "a-module", NULL, NULL);
-    ly_ctx_load_module(ctx, "b-module", NULL, NULL);
-    struct lys_module* example_module1 = ly_ctx_get_module_implemented(ctx, "a-module");
-    struct lysp_import* example_module1_imports = example_module1->parsed->imports;
-    int num_of_imports1 = LY_ARRAY_COUNT(example_module1_imports);
-
-    struct lys_module* example_module2 = ly_ctx_get_module_implemented(ctx, "b-module");
-    struct lysp_import* example_module2_imports = example_module2->parsed->imports;
-    int num_of_imports2 = LY_ARRAY_COUNT(example_module2_imports);
+    //load a-module and b-module in scenario 1 into test1 context
+    ly_ctx_load_module(test1_ctx, "a-module", NULL, NULL);
+    ly_ctx_load_module(test1_ctx, "b-module", NULL, NULL);
+    struct lys_module* test1_amodule = ly_ctx_get_module_implemented(test1_ctx, "a-module");
+    struct lysp_import* test1_amodule_imports = test1_amodule->parsed->imports;
+    int test1_num_of_imports = LY_ARRAY_COUNT(test1_amodule_imports);
     
-    cdada_map_t* module_set = cdada_map_create(256);
+    cdada_map_t* test1_module_set = cdada_map_create(256);
     int hash_of_bmodule = djb2("b-module");
     struct module_info *module_ptr;
 
     //Test1: A valid test case. Find the import for a-module and check if it has been put into the cdada map
-    assert_int_equal(libyangpush_find_import(num_of_imports1, example_module1_imports, module_set), FIND_DEPENDENCY_SUCCESS);
-    assert_int_equal(cdada_map_size(module_set), 1);
-    assert_int_equal(cdada_map_find(module_set, &hash_of_bmodule, (void**)&module_ptr), CDADA_SUCCESS);
-    assert_string_equal(module_ptr->yang_code, bmodule);
+    assert_int_equal(libyangpush_find_import(test1_num_of_imports, test1_amodule_imports, test1_module_set), FIND_DEPENDENCY_SUCCESS);
+    assert_int_equal(cdada_map_size(test1_module_set), 1);
+    assert_int_equal(cdada_map_find(test1_module_set, &hash_of_bmodule, (void**)&module_ptr), CDADA_SUCCESS);
+    assert_string_equal(module_ptr->yang_code, test1_bmodule_text);
     assert_string_equal(module_ptr->name, "b-module");
 
+    //load b-module in scenario 2 into test2 context
+    ly_ctx_load_module(test2_ctx, "b-module", NULL, NULL);
+
+    cdada_map_t* test2_module_set = cdada_map_create(256);
+    struct lys_module* test2_bmodule = ly_ctx_get_module_implemented(test1_ctx, "b-module");
+    struct lysp_import* test2_bmodule_imports = test2_bmodule->parsed->imports;
+    int test2_num_of_imports = LY_ARRAY_COUNT(test2_bmodule_imports);
+
     //Test2: A non-valid test case. Call find_import for b-module which does not have import
-    assert_int_equal(libyangpush_find_import(num_of_imports2, example_module2_imports, module_set), INVALID_PARAMETER);
+    assert_int_equal(libyangpush_find_import(test2_num_of_imports, test2_bmodule_imports, test2_module_set), INVALID_PARAMETER);
+    assert_int_equal(cdada_map_empty(test2_module_set), 1);
 
     free(module_ptr->yang_code);
     free(module_ptr);
-    cdada_map_destroy(module_set);
-    cdada_map_clear(module_set);
-    ly_ctx_destroy(ctx);
-    free(bmodule);
+    cdada_map_clear(test1_module_set);
+    cdada_map_destroy(test1_module_set);
+    cdada_map_destroy(test2_module_set);
+    ly_ctx_destroy(test1_ctx);
+    ly_ctx_destroy(test2_ctx);
+    free(test1_bmodule_text);
 }
 
 int main(void)
