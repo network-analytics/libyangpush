@@ -96,3 +96,16 @@ find_dependency_err_code_t libyangpush_find_import(int num_of_imports, struct ly
  * @return the error code for find_dependency
 */
 find_dependency_err_code_t libyangpush_find_include(int num_of_includes, struct lysp_include *include_module, cdada_map_t *module_set);
+
+/**
+ * Find the reverse dependency modules(augment & deviate) for the passed in 'module'
+ * the 'module_set' stores all modules concerned in a find_dependency call.
+ * the found module will call find_dependency. The process is recursive.
+ * 
+ * @param num_of_module the number of reverse dependency module that's stored in the 'module' sized array
+ * @param module the sized array for this reverse dependency module
+ * @param module_set the cdada map that stores all modules
+ * 
+ * @return the error code for find_dependency
+*/
+find_dependency_err_code_t libyangpush_find_reverse_dep(int num_of_module, struct lys_module **module, cdada_map_t *module_set);

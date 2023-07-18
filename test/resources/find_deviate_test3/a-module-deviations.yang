@@ -1,0 +1,13 @@
+module a-module-deviations {
+  yang-version 1.1;
+  namespace "urn:example:deviations";
+  prefix amd;
+
+  import a-module {
+    prefix a;
+  }
+
+  deviation "/a:something" {
+    deviate not-supported;
+  }
+}

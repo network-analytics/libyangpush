@@ -1,0 +1,17 @@
+module d-module {
+  yang-version 1.1;
+  namespace "urn:example:yang:d-module";
+  prefix d;
+
+  import a-module {
+    prefix a;
+  }
+
+  augment "/a:a" {
+    container y {
+      leaf y-leaf {
+        type string;
+      }
+    }
+  }
+}
