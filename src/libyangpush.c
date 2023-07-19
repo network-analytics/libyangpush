@@ -169,7 +169,7 @@ find_dependency_err_code_t libyangpush_find_import(int num_of_imports, struct ly
     }
 
     unsigned long hash;
-    void *module_info_ptr;
+    void *module_info_ptr = NULL;
     for(int i = 0; i < num_of_imports; i++) {
         hash = djb2((char*)imported_module->name); //hash the module name
 
@@ -202,7 +202,7 @@ find_dependency_err_code_t libyangpush_find_include(int num_of_includes, struct 
     }
 
     unsigned long hash;
-    void *module_info_ptr;
+    void *module_info_ptr = NULL;
     for(int i = 0; i < num_of_includes; i++) {
         hash = djb2((char*)include_module->name); //hash the module name
 
@@ -239,7 +239,7 @@ find_dependency_err_code_t libyangpush_find_reverse_dep(int num_of_module, struc
     }
 
     unsigned long hash;
-    void *module_info_ptr;
+    void *module_info_ptr = NULL;
     for(int i = num_of_module; i > 0; i--) {
         hash = djb2((char*)(module[i-1]->name)); //hash the module name
 
