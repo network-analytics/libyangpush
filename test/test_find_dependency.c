@@ -29,13 +29,13 @@ char* load_yang_example(char *filename)
 static void test_load_module_to_map(void** state)
 {
     struct ly_ctx *test_ctx;
-    if(ly_ctx_new("../test/resources/find_include_test1", 1, &test_ctx)){
+    if(ly_ctx_new("../test/resources/load_module_test", 1, &test_ctx)){
         fprintf(stderr, "%s", "context creation error\n");
         return;
     }
 
-    char *cmodule_text = load_yang_example("../test/resources/find_include_test1/c-module.yang");
-    char *amodule_text = load_yang_example("../test/resources/find_include_test1/a-module.yang");
+    char *cmodule_text = load_yang_example("../test/resources/load_module_test/c-module.yang");
+    char *amodule_text = load_yang_example("../test/resources/load_module_test/a-module.yang");
 
     struct lys_module* test_amodule = ly_ctx_load_module(test_ctx, "a-module", NULL, NULL);
     unsigned long hash_of_amodule = djb2("a-module"), hash_of_cmodule = djb2("c-module");
@@ -264,7 +264,7 @@ static void test_find_reverse_dep(void** state)
 int main(void)
 {
     const struct CMUnitTest tests[] = {
-        // cmocka_unit_test(test_load_module_to_map),
+        cmocka_unit_test(test_load_module_to_map),
         cmocka_unit_test(test_find_import),
         cmocka_unit_test(test_find_include),
         cmocka_unit_test(test_find_reverse_dep)
