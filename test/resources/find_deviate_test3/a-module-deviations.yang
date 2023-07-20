@@ -6,8 +6,21 @@ module a-module-deviations {
   import a-module {
     prefix a;
   }
+  import str-type {
+    prefix str;
+  }
 
-  deviation "/a:something" {
-    deviate not-supported;
+
+  include "c-module";
+
+  deviation "/a:something/a:a-enum" {
+    deviate replace {
+      type c-enum;
+    }
+  }
+  deviation "/a:something/a:str-value" {
+    deviate replace {
+      type str:int-string;
+    }
   }
 }

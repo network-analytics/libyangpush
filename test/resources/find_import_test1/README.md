@@ -2,6 +2,7 @@
 ```yang
 module: a-module
   +--rw a
-  |  +--rw x?   b:bar
+  |  +--rw x?   b:myenum
   +--rw something
+     +--rw c-leaf?   string
 ```

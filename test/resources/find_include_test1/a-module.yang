@@ -4,6 +4,7 @@ module a-module {
   prefix a;
 
   include c-module;
+  include cc-module;
 
   container something{
     uses somegroup;

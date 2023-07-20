@@ -2,5 +2,6 @@
 ```yang
 module: a-module
   +--rw something
-     +--rw c-leaf?   string
+     +--rw c-leaf?    e:e-enum
+     +--rw cc-leaf?   string
 ```

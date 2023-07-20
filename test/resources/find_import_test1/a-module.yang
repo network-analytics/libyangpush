@@ -10,12 +10,12 @@ module a-module {
 
   container a {
     leaf x{
-      type b:bar;
+      type b:myenum;
     }
   }
 
   container something{
-
+    uses b:somegroup;
   }
 
 }
