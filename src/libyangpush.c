@@ -169,7 +169,7 @@ find_dependency_err_code_t libyangpush_find_import(int num_of_imports, struct ly
     }
 
     unsigned long hash;
-    void *module_info_ptr;
+    void *module_info_ptr = NULL;
     for(int i = 0; i < num_of_imports; i++) {
         hash = djb2((char*)imported_module->name); //hash the module name
 
@@ -202,7 +202,7 @@ find_dependency_err_code_t libyangpush_find_include(int num_of_includes, struct 
     }
 
     unsigned long hash;
-    void *module_info_ptr;
+    void *module_info_ptr = NULL;
     for(int i = 0; i < num_of_includes; i++) {
         hash = djb2((char*)include_module->name); //hash the module name
 
@@ -225,6 +225,38 @@ find_dependency_err_code_t libyangpush_find_include(int num_of_includes, struct 
             }
         }
         include_module++;
+    }
+    return FIND_DEPENDENCY_SUCCESS;
+}
+
+find_dependency_err_code_t libyangpush_find_reverse_dep(int num_of_module, struct lys_module **module, cdada_map_t *module_set)
+{
+    if(module == NULL || num_of_module == 0) {
+#if debug
+        fprintf(stderr, "%s", "[libyangpush_find_import]parameter imported_module is NULL\n");
+#endif
+        return INVALID_PARAMETER;
+    }
+
+    unsigned long hash;
+    void *module_info_ptr = NULL;
+    for(int i = num_of_module; i > 0; i--) {
+        hash = djb2((char*)(module[i-1]->name)); //hash the module name
+
+        if(cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_E_NOT_FOUND) { //module is not cached
+            struct module_info* yang_module_info; //fill in the module_info struct
+
+            yang_module_info = (struct module_info*)malloc(sizeof(struct module_info));
+            lys_print_mem(&(yang_module_info->yang_code), module[i-1], LYS_OUT_YANG, 0); //write the module content to module_yang_code
+            yang_module_info->name = (char*)(module[i-1]->name);
+
+            if(cdada_map_insert(module_set, &hash, yang_module_info) != CDADA_SUCCESS) { //inserted the module_info struct
+#if debug
+                fprintf(stderr, "%s%s", "[libyangpush_find_augment]Fail when inserting \n", module[i-1]->name);
+#endif
+                return INSERT_FAIL;
+            }
+        }
     }
     return FIND_DEPENDENCY_SUCCESS;
 }
