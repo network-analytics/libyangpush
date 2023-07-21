@@ -87,7 +87,7 @@ static void test_find_import(void** state)
     struct module_info *bmodule_ptr = NULL, *cmodule_ptr = NULL, *emodule_ptr = NULL;
 
     //Test1: A valid test case. Find the import for a-module and check if it has been put into the cdada map
-    assert_int_equal(libyangpush_find_import(LY_ARRAY_COUNT(test1_amodule->parsed->imports), test1_amodule->parsed->imports, test1_module_set), FIND_DEPENDENCY_SUCCESS);
+    assert_int_equal(libyangpush_find_import(test1_amodule->parsed->imports, test1_module_set), FIND_DEPENDENCY_SUCCESS);
     assert_int_equal(cdada_map_size(test1_module_set), 3); //num of modules in the map
     assert_int_equal(cdada_map_find(test1_module_set, &hash_of_bmodule, (void**)&bmodule_ptr), CDADA_SUCCESS); // Check b-module
     assert_string_equal(bmodule_ptr->yang_code, test1_bmodule_text);
@@ -104,7 +104,7 @@ static void test_find_import(void** state)
     cdada_map_t* test2_module_set = cdada_map_create(256);
 
     //Test2: A non-valid test case. Call find_import for b-module which does not have import
-    assert_int_equal(libyangpush_find_import(LY_ARRAY_COUNT(test2_bmodule->parsed->imports), test2_bmodule->parsed->imports, test2_module_set), INVALID_PARAMETER);
+    assert_int_equal(libyangpush_find_import(test2_bmodule->parsed->imports, test2_module_set), INVALID_PARAMETER);
     assert_int_equal(cdada_map_empty(test2_module_set), 1);
 
     cdada_map_traverse(test1_module_set, &libyangpush_trav_clear_map, NULL);
@@ -141,7 +141,7 @@ static void test_find_include(void** state)
     struct module_info *cmodule_ptr = NULL, *ccmodule_ptr = NULL, *emodule_ptr = NULL;
 
     //Test1: A valid test case. Find the include for a-module and check if it has been put into the cdada map
-    assert_int_equal(libyangpush_find_include(LY_ARRAY_COUNT(test1_amodule->parsed->includes), test1_amodule->parsed->includes, test1_module_set), FIND_DEPENDENCY_SUCCESS);
+    assert_int_equal(libyangpush_find_include(test1_amodule->parsed->includes, test1_module_set), FIND_DEPENDENCY_SUCCESS);
     assert_int_equal(cdada_map_size(test1_module_set), 3);
     assert_int_equal(cdada_map_find(test1_module_set, &hash_of_cmodule, (void**)&cmodule_ptr), CDADA_SUCCESS); //for c-module
     assert_string_equal(cmodule_ptr->yang_code, test1_cmodule_text);
@@ -158,7 +158,7 @@ static void test_find_include(void** state)
     cdada_map_t* test2_module_set = cdada_map_create(256);
 
     //Test2: A non-valid test case. Call find_include for b-module which does not have include
-    assert_int_equal(libyangpush_find_include(LY_ARRAY_COUNT(test2_bmodule->parsed->includes), test2_bmodule->parsed->includes, test2_module_set), INVALID_PARAMETER);
+    assert_int_equal(libyangpush_find_include(test2_bmodule->parsed->includes, test2_module_set), INVALID_PARAMETER);
     assert_int_equal(cdada_map_empty(test2_module_set), 1);
 
     cdada_map_traverse(test1_module_set, &libyangpush_trav_clear_map, NULL);
@@ -201,7 +201,7 @@ static void test_find_reverse_dep(void** state)
                                                                           their reverse dependency identifying them as an import*/
 
     //Test1: A valid test case for finding augment. Find the augment for a-module and check if it has been put into the cdada map
-    assert_int_equal(libyangpush_find_reverse_dep(LY_ARRAY_COUNT(test1_amodule->augmented_by), test1_amodule->augmented_by, test1_module_set), FIND_DEPENDENCY_SUCCESS);
+    assert_int_equal(libyangpush_find_reverse_dep(test1_amodule->augmented_by, test1_module_set), FIND_DEPENDENCY_SUCCESS);
     assert_int_equal(cdada_map_size(test1_module_set), 4);
     assert_int_equal(cdada_map_find(test1_module_set, &hash_of_dmodule, (void**)&dmodule_ptr), CDADA_SUCCESS);
     assert_string_equal(dmodule_ptr->yang_code, test1_dmodule_text);//for d-module
@@ -218,7 +218,7 @@ static void test_find_reverse_dep(void** state)
     cdada_map_t* test2_module_set = cdada_map_create(256);
 
     //Test2: An invalid test case. Call find_include for b-module which does not have include
-    assert_int_equal(libyangpush_find_reverse_dep(LY_ARRAY_COUNT(test2_bmodule->augmented_by), test2_bmodule->augmented_by, test2_module_set), INVALID_PARAMETER);
+    assert_int_equal(libyangpush_find_reverse_dep(test2_bmodule->augmented_by, test2_module_set), INVALID_PARAMETER);
     assert_int_equal(cdada_map_empty(test2_module_set), 1);
 
     //load a-module and its deviations into context
@@ -233,7 +233,7 @@ static void test_find_reverse_dep(void** state)
                                                                           their reverse dependency identifying them as an import*/
 
     //Test3: A valid test case for finding deviate. Find the deviations for a-module and check if it has been put into the cdada map
-    assert_int_equal(libyangpush_find_reverse_dep(LY_ARRAY_COUNT(test3_amodule->deviated_by), test3_amodule->deviated_by, test3_module_set), FIND_DEPENDENCY_SUCCESS);
+    assert_int_equal(libyangpush_find_reverse_dep(test3_amodule->deviated_by, test3_module_set), FIND_DEPENDENCY_SUCCESS);
     assert_int_equal(cdada_map_size(test3_module_set), 4);
     assert_int_equal(cdada_map_find(test3_module_set, &hash_of_deviate, (void**)&deviate_amd_ptr), CDADA_SUCCESS);
     assert_string_equal(deviate_amd_ptr->yang_code, test3_deviate_text);
