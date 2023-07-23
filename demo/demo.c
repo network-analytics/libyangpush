@@ -35,7 +35,7 @@ int connect_netconf(struct ly_ctx **ctx, struct nc_session **session){
         fprintf(stderr, "%s", "Couldn't set the SSH username\n");
     }
     nc_client_ssh_add_keypair(SSH_PUBLIC_KEY, SSH_PRIVATE_KEY);
-    nc_client_ssh_set_auth_pref(NC_SSH_AUTH_PASSWORD, 4);
+    nc_client_ssh_set_auth_pref(NC_SSH_AUTH_PUBLICKEY, 4);
 
     *session = nc_connect_ssh(SSH_ADDRESS, SSH_PORT, *ctx);
     if (!(*session)) {
