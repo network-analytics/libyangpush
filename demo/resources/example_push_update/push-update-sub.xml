@@ -1,0 +1,28 @@
+<notification xmlns="urn:ietf:params:xml:ns:netconf:notification:1.0">
+  <eventTime>2022-09-02T10:59:55.32Z</eventTime>
+  <push-update xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push">
+    <id>2222</id>
+    <datastore-contents>
+      <subscriptions xmlns="urn:ietf:params:xml:ns:yang:ietf-subscribed-notifications">
+        <subscription>
+          <id>6666</id>
+          <datastore xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push"
+            xmlns:ds="urn:ietf:params:xml:ns:yang:ietf-datastores">ds:operational</datastore>
+          <datastore-xpath-filter xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push"
+            xmlns:a="urn:example:yang:a-module">/a:a</datastore-xpath-filter>
+          <transport xmlns:unt="urn:ietf:params:xml:ns:yang:ietf-udp-notif-transport">unt:udp-notif</transport>
+          <encoding>encode-xml</encoding>
+          <receivers>
+            <receiver>
+              <name>subscription-specific-receiver-def</name>
+              <receiver-instance-ref xmlns="urn:ietf:params:xml:ns:yang:ietf-subscribed-notif-receivers">global-udp-notif-receiver-def</receiver-instance-ref>
+            </receiver>
+          </receivers>
+          <periodic xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push">
+            <period>30000</period>
+          </periodic>
+        </subscription>
+      </subscriptions>
+    </datastore-contents>
+  </push-update>
+</notification>

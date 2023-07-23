@@ -1,0 +1,17 @@
+module a-module {
+  yang-version 1.1;
+  namespace "urn:example:yang:a-module";
+  prefix a;
+
+  container a{
+    list a-instance{
+      key name;
+      leaf name{
+        type string;
+      }
+      leaf state{
+        type string;
+      }
+    }
+  }
+}

@@ -7,7 +7,6 @@ project(
     ]
 )
 cc = meson.get_compiler('c')
-
 project_description = 'libyangpush'
 
 if meson.get_compiler('c').has_multi_arguments('-Wall', '-Wextra', '-pedantic', '-Werror')
@@ -41,10 +40,15 @@ libcdada_dep = cc.find_library('libcdada',
   dirs: ['/usr/local/lib']
 )
 
+libnetconf2_dep = cc.find_library('libnetconf2', 
+  dirs: ['/usr/local/lib']
+)
+
 project_dependencies = [
     dependency('LibXml2'),
     dependency('jansson'),
     dependency('libcurl'),
+    libnetconf2_dep,
     libyang_dep,
     libcdada_dep,
 ]

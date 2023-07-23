@@ -1,0 +1,14 @@
+<notification xmlns="urn:ietf:params:xml:ns:netconf:notification:1.0">
+  <eventTime>2022-09-02T10:59:55.32Z</eventTime>
+  <push-update xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push">
+    <id>6666</id>
+    <datastore-contents>
+      <a xmlns="urn:example:yang:a-module">
+        <a-instance>
+          <name>linzhuoyao</name>
+          <status>tired</status>
+        </a-instance>
+      </a>
+    </datastore-contents>
+  </push-update>
+</notification>
