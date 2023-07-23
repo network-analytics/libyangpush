@@ -41,8 +41,10 @@ void libyangpush_create_schema(struct module_info *module_ptr, cdada_map_t *map,
             continue;
         }
         cdada_map_find(map, &dependency_hash, (void**)&dependency_module_ptr);
-
-        json_t *reference = json_pack("{s:s,s:i}", //schematype, reference, schema
+        char subject_name[200];
+        sprintf(subject_name, "hackathon_demo%s", dependency_module_ptr->name);
+        json_t *reference = json_pack("{s:s,s:s,s:i}", //schematype, reference, schema
+                                "subject",   subject_name,
                                 "name",      dependency_module_ptr->name,
                                 "version",   1);
         json_array_append(references, reference);

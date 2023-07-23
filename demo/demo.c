@@ -118,12 +118,12 @@ void find_dependency_n_create_schema(struct ly_ctx *test_ctx, struct lys_module 
 
     //Test
     libyangpush_find_import(test_module->parsed->imports, test1_module_set, test1_reg_list);
-    printf("cdada list size %d\n", cdada_list_size(test1_reg_list));
+
     libyangpush_find_include(test_module->parsed->includes, test1_module_set, test1_reg_list);
-    printf("cdada list size %d\n", cdada_list_size(test1_reg_list));
+
     // cdada_list_reverse(test1_reg_list);
     cdada_list_rtraverse(test1_reg_list, &libyangpush_trav_list_n_clear_dep_list, test1_module_set); //create schema for direct dependency
-    printf("finish1\n");
+
     struct module_info *test_module_if_ptr = libyangpush_load_module_into_map(test1_module_set, test1_reg_list, test_module); /* parent module needs to be inserted into map to avoid
                                                                           their reverse dependency identifying them as an import*/
     cdada_list_traverse(test1_reg_list, &libyangpush_trav_copy_list, test_module_if_ptr->dependency_list);
@@ -132,11 +132,10 @@ void find_dependency_n_create_schema(struct ly_ctx *test_ctx, struct lys_module 
 
     libyangpush_find_reverse_dep(test_module->augmented_by, test1_module_set, test2_reg_list, test_module->name);
     libyangpush_find_reverse_dep(test_module->deviated_by, test1_module_set, test2_reg_list, test_module->name);
-    
+    cdada_list_reverse(test2_reg_list);
 
-    printf("cdada list size %d\nmodule name %s\n", cdada_list_size(test2_reg_list), test_module->name);
     cdada_list_traverse(test2_reg_list, &libyangpush_trav_list_n_clear_dep_list, test1_module_set); //create schema for the reverse dependency
-    printf("finish2\n");
+
     
     test_module_if_ptr->dependency_list = cdada_list_create(unsigned long);
     cdada_list_traverse(test1_reg_list, &libyangpush_trav_copy_list, test_module_if_ptr->dependency_list);
