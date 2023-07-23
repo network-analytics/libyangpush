@@ -18,17 +18,18 @@ void print_schema_registry_response_clb(void *ptr, size_t size, size_t nmemb, vo
 {
     int schemaID;
     printf("response:\n%s", (char*)ptr);
-    sscanf((char*)ptr, "{\"schema-id\":%d}", &schemaID);
+    sscanf((char*)ptr, "{\"id\":%d}", &schemaID);
     // *(int*)data = schemaID;
     printf("schema id :%d\n", schemaID);
 }
 
-void register_schema(json_t *schema)
+void register_schema(json_t *schema, char* subject_name)
 {
     CURL *curl;
     CURLcode res;
     struct curl_slist *chunk = NULL;
-
+    char url[200];
+    sprintf(url, "%s/hackathon_demo%s/versions", YANG_SCHEMA_REGISTRY, subject_name);
     char *postthis = json_dumps(schema, JSON_ENSURE_ASCII);
     chunk = curl_slist_append(chunk, "Content-Type: application/json");
     // printf("size %d\ncontent:%s", strlen(postthis), postthis);
@@ -36,7 +37,7 @@ void register_schema(json_t *schema)
     if(curl) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-        curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:5000/register_schema");
+        curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postthis);
         // curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, print_schema_registry_response_clb);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, print_schema_registry_response_clb);

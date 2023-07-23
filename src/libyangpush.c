@@ -53,7 +53,7 @@ void libyangpush_create_schema(struct module_info *module_ptr, cdada_map_t *map,
                                "schemaType",    "YANG",
                                "references",    references,
                                "schema",    module_ptr->yang_code);
-    register_schema(schema);
+    register_schema(schema, module_ptr->name);
 #if check_schema
     char file_path[100];
     sprintf(file_path, "../resources/schemas/%s.json", module_ptr->name);
