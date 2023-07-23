@@ -43,6 +43,8 @@ libcdada_dep = cc.find_library('libcdada',
 
 project_dependencies = [
     dependency('LibXml2'),
+    dependency('jansson'),
+    dependency('libcurl'),
     libyang_dep,
     libcdada_dep,
 ]
@@ -113,4 +115,15 @@ test('test_find_dependency',
     dependencies: [project_dependencies, project_dep, test_dep],
     install: false
   )
+)
+
+# =============
+# For Hackathon
+# =============
+
+executable(
+  'demo',
+  files('demo/demo.c'),
+  dependencies: [project_dependencies, project_dep],
+  install: false
 )

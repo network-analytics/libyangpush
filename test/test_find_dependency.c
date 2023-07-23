@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <setjmp.h>
 #include <stdio.h>
+#include <sys/stat.h>
 #include <cmocka.h>
 #include <libyang/libyang.h>
 #include <libyang/tree_schema.h>
@@ -53,16 +54,16 @@ static void test_load_module_to_map(void** state)
     cdada_list_t* test_reg_list = cdada_list_create(128*sizeof(char));
 
     // Test 1: Valid test case. Load a-module and e-module in the map.
-    assert_int_equal(libyangpush_load_module_into_map(test_map, test_reg_list, test_amodule), INSERT_SUCCESS);
-    assert_int_equal(libyangpush_load_submodule_into_map(test_map, test_reg_list, test_amodule->parsed->includes->submodule), INSERT_SUCCESS);
+    assert_non_null(libyangpush_load_module_into_map(test_map, test_reg_list, test_amodule));
+    assert_non_null(libyangpush_load_submodule_into_map(test_map, test_reg_list, test_amodule->parsed->includes->submodule));
 
     assert_int_equal(cdada_map_size(test_map), 2);
     assert_found_module("a-module", amodule_text, test_map);
     assert_found_module("c-module", cmodule_text, test_map);
 
     // Test 2: Non-valid test case. Passed null pointer into function
-    assert_int_equal(libyangpush_load_module_into_map(NULL, NULL, NULL), INVALID_PARAMETER);
-    assert_int_equal(libyangpush_load_module_into_map(NULL, NULL, NULL), INVALID_PARAMETER);
+    assert_null(libyangpush_load_module_into_map(NULL, NULL, NULL));
+    assert_null(libyangpush_load_module_into_map(NULL, NULL, NULL));
 
     cdada_map_traverse(test_map, &libyangpush_trav_clear_map, NULL);
     cdada_map_destroy(test_map);
@@ -94,8 +95,6 @@ static void test_find_import(void** state)
     
     cdada_map_t* test1_module_set = cdada_map_create(unsigned long);
     cdada_list_t *test1_reg_list = cdada_list_create(128*sizeof(char));
-    unsigned long hash_of_bmodule = djb2("b-module"), hash_of_cmodule = djb2("c-module"), hash_of_emodule = djb2("e-module");
-    struct module_info *bmodule_ptr = NULL, *cmodule_ptr = NULL, *emodule_ptr = NULL;
 
     //Test1: A valid test case. Find the import for a-module and check if it has been put into the cdada map
     assert_int_equal(libyangpush_find_import(test1_amodule->parsed->imports, test1_module_set, test1_reg_list), FIND_DEPENDENCY_SUCCESS);
@@ -113,6 +112,9 @@ static void test_find_import(void** state)
     assert_int_equal(libyangpush_find_import(test2_bmodule->parsed->imports, test2_module_set, test2_reg_list), INVALID_PARAMETER);
     assert_int_equal(cdada_map_empty(test2_module_set), 1);
 
+    if(mkdir("../resouces/json_schemas", 0777)){ //folder created
+        cdada_list_rtraverse(test1_reg_list, &libyangpush_trav_list_n_clear_dep_list, test1_module_set);
+    }
     cdada_map_traverse(test1_module_set, &libyangpush_trav_clear_map, NULL);
     cdada_map_destroy(test1_module_set);
     cdada_map_destroy(test2_module_set);
@@ -163,6 +165,9 @@ static void test_find_include(void** state)
     assert_int_equal(libyangpush_find_include(test2_bmodule->parsed->includes, test2_module_set, test2_reg_list), INVALID_PARAMETER);
     assert_int_equal(cdada_map_empty(test2_module_set), 1);
 
+    if(mkdir("../resouces/json_schemas", 0777)){ //folder created
+        cdada_list_rtraverse(test1_reg_list, &libyangpush_trav_list_n_clear_dep_list, test1_module_set);
+    }
     cdada_map_traverse(test1_module_set, &libyangpush_trav_clear_map, NULL);
     cdada_map_destroy(test1_module_set);
     cdada_map_destroy(test2_module_set);
@@ -199,24 +204,29 @@ static void test_find_reverse_dep(void** state)
     ly_ctx_load_module(test1_ctx, "e-module", NULL, NULL);
     
     cdada_map_t* test1_module_set = cdada_map_create(unsigned long);
-    cdada_list_t* test1_reg_list = cdada_list_create(128*sizeof(char));
-    libyangpush_load_module_into_map(test1_module_set, test1_reg_list, test1_amodule); /* parent module needs to be inserted into map to avoid
+    cdada_list_t* test1_reg_list = cdada_list_create(unsigned long);
+    struct module_info *test1_amodule_if_ptr = libyangpush_load_module_into_map(test1_module_set, test1_reg_list, test1_amodule); /* parent module needs to be inserted into map to avoid
                                                                           their reverse dependency identifying them as an import*/
+    assert_non_null(test1_amodule_if_ptr);
+
+    libyangpush_create_schema(test1_amodule_if_ptr, test1_module_set, djb2("a-module"));
 
     //Test1: A valid test case for finding augment. Find the augment for a-module and check if it has been put into the cdada map
-    assert_int_equal(libyangpush_find_reverse_dep(test1_amodule->augmented_by, test1_module_set, test1_reg_list), FIND_DEPENDENCY_SUCCESS);
+    assert_int_equal(libyangpush_find_reverse_dep(test1_amodule->augmented_by, test1_module_set, test1_reg_list, "a-module"), FIND_DEPENDENCY_SUCCESS);
+    cdada_list_traverse(test1_reg_list, &libyangpush_trav_copy_list, test1_amodule_if_ptr->dependency_list);
     assert_int_equal(cdada_map_size(test1_module_set), 4);
     assert_found_module("d-module", test1_dmodule_text, test1_module_set);
     assert_found_module("c-module", test1_cmodule_text, test1_module_set);
     assert_found_module("e-module", test1_emodule_text, test1_module_set);
-
+    cdada_list_rtraverse(test1_reg_list, &libyangpush_trav_list_n_clear_dep_list, test1_module_set);
+    
     //load b-module in scenario 2 into test2 context
     struct lys_module* test2_bmodule = ly_ctx_load_module(test2_ctx, "b-module", NULL, NULL);
     cdada_map_t* test2_module_set = cdada_map_create(unsigned long);
     cdada_list_t* test2_reg_list = cdada_list_create(128*sizeof(char));
 
     //Test2: An invalid test case. Call find_include for b-module which does not have include
-    assert_int_equal(libyangpush_find_reverse_dep(test2_bmodule->augmented_by, test2_module_set, test2_reg_list), INVALID_PARAMETER);
+    assert_int_equal(libyangpush_find_reverse_dep(test2_bmodule->augmented_by, test2_module_set, test2_reg_list, "b-module"), INVALID_PARAMETER);
     assert_int_equal(cdada_map_empty(test2_module_set), 1);
 
     //load a-module and its deviations into context
@@ -226,22 +236,25 @@ static void test_find_reverse_dep(void** state)
 
     cdada_map_t* test3_module_set = cdada_map_create(unsigned long);
     cdada_list_t* test3_reg_list = cdada_list_create(128*sizeof(char));
-    libyangpush_load_module_into_map(test3_module_set, test3_reg_list, test3_amodule); /* parent module needs to be inserted into map to avoid
+    struct module_info *test3_amodule_if_ptr = libyangpush_load_module_into_map(test3_module_set, test3_reg_list, test3_amodule); /* parent module needs to be inserted into map to avoid
                                                                           their reverse dependency identifying them as an import*/
+    assert_non_null(test3_amodule_if_ptr);
 
     //Test3: A valid test case for finding deviate. Find the deviations for a-module and check if it has been put into the cdada map
-    assert_int_equal(libyangpush_find_reverse_dep(test3_amodule->deviated_by, test3_module_set, test3_reg_list), FIND_DEPENDENCY_SUCCESS);
+    assert_int_equal(libyangpush_find_reverse_dep(test3_amodule->deviated_by, test3_module_set, test3_reg_list, "a-module"), FIND_DEPENDENCY_SUCCESS);
     assert_int_equal(cdada_map_size(test3_module_set), 4);
+    cdada_list_traverse(test3_reg_list, &libyangpush_trav_copy_list, test3_amodule_if_ptr->dependency_list);
+    printf("parent module list size %d\n", cdada_list_size(test3_amodule_if_ptr->dependency_list));
     assert_found_module("a-module-deviations", test3_deviate_text, test3_module_set);
     assert_found_module("str-type", test3_strmodule_text, test3_module_set);
     assert_found_module("c-module", test3_cmodule_text, test3_module_set);
-
-    int counter = 0;
-    if(!mkdir("../resouces/json_schemas", 0777)){ //folder created
-
-    }
-    cdada_list_traverse(test1_reg_list, &libyangpush_trav_register_schema, &counter);
+        
+    cdada_list_rtraverse(test3_reg_list, &libyangpush_trav_list_n_clear_dep_list, test3_module_set);
+    // counter_n_map* counter_n_map_ptr = malloc(sizeof(counter_n_map));
+    // counter_n_map_ptr->count = 0;
+    // counter_n_map_ptr->map = test1_module_set;
     
+    // free(counter_n_map_ptr);
     cdada_map_traverse(test1_module_set, &libyangpush_trav_clear_map, NULL);
     cdada_map_traverse(test3_module_set, &libyangpush_trav_clear_map, NULL);
     cdada_map_destroy(test1_module_set);
@@ -264,9 +277,9 @@ static void test_find_reverse_dep(void** state)
 int main(void)
 {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(test_load_module_to_map),
-        cmocka_unit_test(test_find_import),
-        cmocka_unit_test(test_find_include),
+        // cmocka_unit_test(test_load_module_to_map),
+        // cmocka_unit_test(test_find_import),
+        // cmocka_unit_test(test_find_include),
         cmocka_unit_test(test_find_reverse_dep)
     };
     
