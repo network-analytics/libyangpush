@@ -17,10 +17,10 @@ unsigned long djb2(char *str)
 void print_schema_registry_response_clb(void *ptr, size_t size, size_t nmemb, void *data)
 {
     int schemaID;
-    printf("response:\n%s", (char*)ptr);
+    // printf("response:\n%s", (char*)ptr);
     sscanf((char*)ptr, "{\"id\":%d}", &schemaID);
     // *(int*)data = schemaID;
-    printf("schema id :%d\n", schemaID);
+    printf("=> schema id %d\n\n\n", schemaID);
 }
 
 void register_schema(json_t *schema, char *subject_name)
@@ -30,9 +30,13 @@ void register_schema(json_t *schema, char *subject_name)
     struct curl_slist *chunk = NULL;
     char url[200];
     sprintf(url, "%s/%s/versions", YANG_SCHEMA_REGISTRY, subject_name);
-    char *postthis = json_dumps(schema, JSON_ENSURE_ASCII);
+
+    char *postthis = json_dumps(schema, JSON_INDENT(2));
     chunk = curl_slist_append(chunk, "Content-Type: application/json");
-    // printf("size %d\ncontent:%s", strlen(postthis), postthis);
+#if demo_print
+    printf("url: %s\n", url);
+    printf("%s\n", postthis);
+#endif
     curl = curl_easy_init();
     if(curl) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
@@ -49,9 +53,9 @@ void register_schema(json_t *schema, char *subject_name)
         /* Perform the request, res will get the return code */
         res = curl_easy_perform(curl);
         /* Check for errors */
-        if(res != CURLE_OK)
-        fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                curl_easy_strerror(res));
+        // if(res != CURLE_OK)
+        // fprintf(stderr, "curl_easy_perform() failed: %s\n",
+        //         curl_easy_strerror(res));
         /* always cleanup */
         curl_easy_cleanup(curl);
     }

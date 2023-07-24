@@ -1,7 +1,6 @@
 /* libyangpush functionality */
 #include "libyangpush.h"
 #include "tool.h"
-#define check_schema 1
 
 void libyangpush_trav_clear_map(const cdada_map_t* s, const void* k, void* v, void* opaque)
 {
@@ -58,16 +57,9 @@ void libyangpush_create_schema(struct module_info *module_ptr, cdada_map_t *map,
                                "schema",    module_ptr->yang_code);
     char subject_name[200];
     sprintf(subject_name, "%s%s", module_ptr->subject_prefix, module_ptr->name);
+    
     register_schema(schema, subject_name);
-#if check_schema
-    char file_path[100];
-    sprintf(file_path, "../resources/schemas/%s.json", module_ptr->name);
-    printf("json dump %d\n", json_dump_file(schema, file_path, JSON_ENSURE_ASCII));
 
-    char* json_schema = json_dumps(schema, JSON_ENSURE_ASCII);
-    printf("%s\n\n", json_schema);
-    free(json_schema);
-#endif
     json_decref(references);
     json_decref(schema);
 
@@ -89,7 +81,7 @@ void libyangpush_trav_list_n_clear_dep_list(const cdada_list_t* s, const void* k
 #endif
         goto cleanup;
     }
-    printf("module name: %s\n", module_ptr->name);
+    // printf("module name: %s\n", module_ptr->name);
     libyangpush_create_schema(module_ptr, map, hash);
 
 cleanup:
