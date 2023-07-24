@@ -11,6 +11,7 @@ void libyangpush_trav_clear_map(const cdada_map_t* s, const void* k, void* v, vo
     struct module_info *value = v;
     free(value->yang_code);
     free(value->name);
+    free(value->subject_prefix);
     free(value);
     return;
 }
@@ -55,7 +56,9 @@ void libyangpush_create_schema(struct module_info *module_ptr, cdada_map_t *map,
                                "schemaType",    "YANG",
                                "references",    references,
                                "schema",    module_ptr->yang_code);
-    register_schema(schema, module_ptr->name);
+    char subject_name[200];
+    sprintf(subject_name, "%s%s", module_ptr->subject_prefix, module_ptr->name);
+    register_schema(schema, subject_name);
 #if check_schema
     char file_path[100];
     sprintf(file_path, "../resources/schemas/%s.json", module_ptr->name);
@@ -105,6 +108,8 @@ struct module_info* libyangpush_load_module_into_map(cdada_map_t *map, cdada_lis
     struct module_info* yang_module_info_ptr = NULL;
     yang_module_info_ptr = (struct module_info*)malloc(sizeof(struct module_info));
     yang_module_info_ptr->dependency_list = cdada_list_create(unsigned long);
+    yang_module_info_ptr->subject_prefix = calloc((strlen(SUBJECT_PREFIX)+1), sizeof(char));
+    strcpy(yang_module_info_ptr->subject_prefix, SUBJECT_PREFIX);
 
     //write the module content to module_info->yang_code
     lys_print_mem(&(yang_module_info_ptr->yang_code), module, LYS_OUT_YANG, 0);
@@ -132,6 +137,9 @@ struct module_info* libyangpush_load_submodule_into_map(cdada_map_t *map, cdada_
     struct module_info* yang_module_info_ptr = NULL;
     yang_module_info_ptr =  (struct module_info*)malloc(sizeof(struct module_info)); //fill in the module_info struct
     yang_module_info_ptr->dependency_list = cdada_list_create(unsigned long);
+    yang_module_info_ptr->subject_prefix = calloc((strlen(SUBJECT_PREFIX)+1), sizeof(char));
+    strcpy(yang_module_info_ptr->subject_prefix, SUBJECT_PREFIX);
+
     struct ly_out* out = NULL;
 
     //write the module content to module_info->yang_code

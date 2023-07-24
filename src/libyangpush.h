@@ -26,6 +26,7 @@ typedef enum
 struct module_info{
     char    *name;   /* The name of this module in the set */
     char    *yang_code; /* The yang code of this module */
+    char    *subject_prefix; /* The subject prefix that's going be used in schema registration */
     cdada_list_t *dependency_list;
 };
 

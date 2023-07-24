@@ -140,6 +140,13 @@ void find_dependency_n_create_schema(struct ly_ctx *test_ctx, struct lys_module 
     test_module_if_ptr->dependency_list = cdada_list_create(unsigned long);
     cdada_list_traverse(test1_reg_list, &libyangpush_trav_copy_list, test_module_if_ptr->dependency_list);
     cdada_list_traverse(test2_reg_list, &libyangpush_trav_copy_list, test_module_if_ptr->dependency_list);
+
+    free(test_module_if_ptr->subject_prefix);
+    char new_subject_prefix[100];
+    sprintf(new_subject_prefix, "%saugment_", SUBJECT_PREFIX);
+    test_module_if_ptr->subject_prefix = calloc((strlen(new_subject_prefix)+1), sizeof(char));
+    strcpy(test_module_if_ptr->subject_prefix, new_subject_prefix);
+
     libyangpush_create_schema(test_module_if_ptr, test1_module_set, djb2(test_module->name));
     cdada_map_traverse(test1_module_set, &libyangpush_trav_clear_map, NULL);
     cdada_map_traverse(test2_module_set, &libyangpush_trav_clear_map, NULL);
