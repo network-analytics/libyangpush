@@ -57,7 +57,7 @@ void libyangpush_create_schema(struct module_info *module_ptr, cdada_map_t *map,
                                "schema",    module_ptr->yang_code);
     char subject_name[200];
     sprintf(subject_name, "%s%s", module_ptr->subject_prefix, module_ptr->name);
-    
+
     register_schema(schema, subject_name);
 
     json_decref(references);
@@ -326,6 +326,9 @@ find_dependency_err_code_t libyangpush_find_import(struct lysp_import *imported_
         struct module_info *module_if_ptr = NULL;
         if(cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_E_NOT_FOUND){ //module is not cached
             module_if_ptr = libyangpush_load_module_into_map(module_set, reg_list, imported_module->module);
+#if demo_print
+            printf("Found imported module: %s\n", module_if_ptr->name);
+#endif
         }
         else if (cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_SUCCESS) { //modules is cached
             continue;
@@ -383,6 +386,9 @@ find_dependency_err_code_t libyangpush_find_reverse_dep(struct lys_module **modu
         struct module_info *module_if_ptr = NULL;
         if(cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_E_NOT_FOUND) { //module is not cached
             module_if_ptr = libyangpush_load_module_into_map(module_set, reg_list, module[i-1]);
+#if demo_print
+            printf("Found augmenting module: %s\n", module_if_ptr->name);
+#endif
         }
         else if (cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_SUCCESS) { //modules is cached
             continue;

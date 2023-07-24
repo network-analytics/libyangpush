@@ -197,6 +197,9 @@ void demo(char *msg)
             }
             break;
     }
+#if demo_print
+            printf("Base module: %s\n", module->name);
+#endif
     find_dependency_n_create_schema(test_ctx, module);
     
 cleanup:
