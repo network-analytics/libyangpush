@@ -2,6 +2,7 @@
 #include <jansson.h>
 
 #define YANG_SCHEMA_REGISTRY "http://127.0.0.1:5000/subjects"
+#define SUBJECT_PREFIX "hackathon_demo_"
 
 unsigned long djb2(char *str);
 void register_schema(json_t *schema, char* subject_name);

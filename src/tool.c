@@ -29,7 +29,7 @@ void register_schema(json_t *schema, char* subject_name)
     CURLcode res;
     struct curl_slist *chunk = NULL;
     char url[200];
-    sprintf(url, "%s/hackathon_demo%s/versions", YANG_SCHEMA_REGISTRY, subject_name);
+    sprintf(url, "%s/%s%s/versions", YANG_SCHEMA_REGISTRY, SUBJECT_PREFIX, subject_name);
     char *postthis = json_dumps(schema, JSON_ENSURE_ASCII);
     chunk = curl_slist_append(chunk, "Content-Type: application/json");
     // printf("size %d\ncontent:%s", strlen(postthis), postthis);
