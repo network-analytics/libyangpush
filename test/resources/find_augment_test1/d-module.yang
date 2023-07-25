@@ -6,12 +6,20 @@ module d-module {
   import a-module {
     prefix a;
   }
+  import e-module {
+    prefix e;
+    revision-date 2023-06-13;
+  }
+
+
+  include "c-module";
 
   augment "/a:a" {
     container y {
       leaf y-leaf {
-        type string;
+        type e:e-enum;
       }
+      uses somegroup;
     }
   }
 }

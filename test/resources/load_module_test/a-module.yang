@@ -3,14 +3,10 @@ module a-module {
   namespace "urn:example:yang:a-module";
   prefix a;
 
+
+  include "c-module";
+
   container something {
-    leaf str-value {
-      type string;
-    }
-    leaf a-enum {
-      type enumeration{
-        enum one;
-      }
-    }
+    uses somegroup;
   }
 }

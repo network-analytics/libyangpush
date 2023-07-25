@@ -2,6 +2,71 @@
 #include "libyangpush.h"
 #include "tool.h"
 
+void libyangpush_trav_clear_map(const cdada_map_t* s, const void* k, void* v, void* opaque)
+{
+    (void) k;
+    (void) opaque;
+    (void) s;
+    struct module_info *value = v;
+    free(value->yang_code);
+    free(value->name);
+    free(value);
+    return;
+}
+
+find_dependency_err_code_t libyangpush_load_module_into_map(cdada_map_t *map, struct lys_module* module)
+{
+    if(map == NULL || module == NULL){
+        return INVALID_PARAMETER;
+    }
+
+    unsigned long hash = djb2((char*)(module->name)); //hash the module name
+    struct module_info* yang_module_info_ptr = (struct module_info*)malloc(sizeof(struct module_info));
+
+    //write the module content to module_info->yang_code
+    lys_print_mem(&(yang_module_info_ptr->yang_code), module, LYS_OUT_YANG, 0);
+
+    //write the module name to module_info->name
+    yang_module_info_ptr->name = calloc((strlen(module->name)+1), sizeof(char));
+    strncpy(yang_module_info_ptr->name, (char*)(module->name), strlen(module->name));
+    
+    if(cdada_map_insert(map, &hash, yang_module_info_ptr) != CDADA_SUCCESS) { //inserted the module_info struct
+#if debug
+                fprintf(stderr, "%s%s", "[libyangpush_load_module_into_map]Fail when inserting \n", module->name);
+#endif
+        return INSERT_FAIL;
+    }
+    return INSERT_SUCCESS;
+}
+
+find_dependency_err_code_t libyangpush_load_submodule_into_map(cdada_map_t *map, struct lysp_submodule* module)
+{
+    if(map == NULL || module == NULL){
+        return INVALID_PARAMETER;
+    }
+
+    unsigned long hash = djb2((char*)module->name); //hash the module name
+    struct module_info* yang_module_info_ptr = (struct module_info*)malloc(sizeof(struct module_info)); //fill in the module_info struct
+    struct ly_out* out = NULL;
+
+    //write the module content to module_info->yang_code
+    ly_out_new_memory(&(yang_module_info_ptr->yang_code), 0, &out);//store submodule content in char
+    lys_print_submodule(out, module, LYS_OUT_YANG, 0, LY_PRINT_SHRINK);
+    ly_out_free(out, 0, 0);
+
+    //write the module name to module_info->name
+    yang_module_info_ptr->name = calloc((strlen(module->name)+1), sizeof(char));
+    strncpy(yang_module_info_ptr->name, (char*)(module->name), strlen(module->name));
+
+    if(cdada_map_insert(map, &hash, yang_module_info_ptr) != CDADA_SUCCESS) { //inserted the module_info struct
+#if debug
+        fprintf(stderr, "%s%s", "[libyangpush_load_module_into_map]Fail when inserting \n", module->name);
+#endif
+        return INSERT_FAIL;
+    }
+    return INSERT_SUCCESS;
+}
+
 char* libyangpush_pattern_match(char* pattern, char* string)
 {
     int has_pattern_matched = 0;
@@ -159,9 +224,9 @@ size_t libyangpush_parse_subtree(xmlNodePtr datastore_subtree, char ***result)
     return child_index;
 }
 
-find_dependency_err_code_t libyangpush_find_import(int num_of_imports, struct lysp_import *imported_module, cdada_map_t *module_set)
+find_dependency_err_code_t libyangpush_find_import(struct lysp_import *imported_module, cdada_map_t *module_set)
 {
-    if(imported_module == NULL || num_of_imports == 0){
+    if(imported_module == NULL){
 #if debug
         fprintf(stderr, "%s", "[libyangpush_find_import]parameter imported_module is NULL\n");
 #endif
@@ -170,31 +235,26 @@ find_dependency_err_code_t libyangpush_find_import(int num_of_imports, struct ly
 
     unsigned long hash;
     void *module_info_ptr = NULL;
-    for(int i = 0; i < num_of_imports; i++) {
+    for(int i = 0; i < (int)LY_ARRAY_COUNT(imported_module); i++) {
+        imported_module+=i;
         hash = djb2((char*)imported_module->name); //hash the module name
 
         if(cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_E_NOT_FOUND){ //module is not cached
-            struct module_info* yang_module_info; //fill in the module_info struct
-            yang_module_info = (struct module_info*)malloc(sizeof(struct module_info));
-            lys_print_mem(&(yang_module_info->yang_code), imported_module->module, LYS_OUT_YANG, 0); //write the module content to module_yang_code
-            yang_module_info->name = (char*)(imported_module->module->name);
-
-            if(cdada_map_insert(module_set, &hash, yang_module_info) != CDADA_SUCCESS) { //inserted the module_info struct into map
-#if debug
-                fprintf(stderr, "%s%s", "[libyangpush_find_import]Fail when inserting \n", imported_module->name);
-#endif
-                return INSERT_FAIL;
-            }
+            libyangpush_load_module_into_map(module_set, imported_module->module);
         }
-        imported_module++;
+        else if (cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_SUCCESS) { //modules is cached
+            continue;
+        }
+        libyangpush_find_import(imported_module->module->parsed->imports, module_set);
+        libyangpush_find_include(imported_module->module->parsed->includes, module_set);
     }
     
     return FIND_DEPENDENCY_SUCCESS;
 }
 
-find_dependency_err_code_t libyangpush_find_include(int num_of_includes, struct lysp_include *include_module, cdada_map_t *module_set)
+find_dependency_err_code_t libyangpush_find_include(struct lysp_include *include_module, cdada_map_t *module_set)
 {
-    if(include_module == NULL || num_of_includes == 0){
+    if(include_module == NULL){
 #if debug
         fprintf(stderr, "%s", "[libyangpush_find_import]Invalid input parameter\n");
 #endif
@@ -203,35 +263,25 @@ find_dependency_err_code_t libyangpush_find_include(int num_of_includes, struct 
 
     unsigned long hash;
     void *module_info_ptr = NULL;
-    for(int i = 0; i < num_of_includes; i++) {
+    for(int i = 0; i < (int)LY_ARRAY_COUNT(include_module); i++) {
+        include_module+=i;
         hash = djb2((char*)include_module->name); //hash the module name
 
         if(cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_E_NOT_FOUND){ //module is not cached
-            struct module_info* yang_module_info; //fill in the module_info struct
-            struct ly_out* out = NULL;
-            yang_module_info = (struct module_info*)malloc(sizeof(struct module_info));
-
-            ly_out_new_memory(&(yang_module_info->yang_code), 0, &out);//store submodule content in char
-            lys_print_submodule(out, include_module->submodule, LYS_OUT_YANG, 0,  LY_PRINT_SHRINK);
-            ly_out_free(out, 0, 0);
-
-            yang_module_info->name = (char*)(include_module->name);
-
-            if(cdada_map_insert(module_set, &hash, yang_module_info) != CDADA_SUCCESS) { //inserted the module_info struct
-#if debug
-                fprintf(stderr, "%s%s", "[libyangpush_find_include]Fail when inserting \n", include_module->name);
-#endif
-                return INSERT_FAIL;
-            }
+            libyangpush_load_submodule_into_map(module_set, include_module->submodule);
         }
-        include_module++;
+        else if (cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_SUCCESS) { //modules is cached
+            continue;
+        }
+        libyangpush_find_import(include_module->submodule->imports, module_set);
+        libyangpush_find_include(include_module->submodule->includes, module_set);
     }
     return FIND_DEPENDENCY_SUCCESS;
 }
 
-find_dependency_err_code_t libyangpush_find_reverse_dep(int num_of_module, struct lys_module **module, cdada_map_t *module_set)
+find_dependency_err_code_t libyangpush_find_reverse_dep(struct lys_module **module, cdada_map_t *module_set)
 {
-    if(module == NULL || num_of_module == 0) {
+    if(module == NULL) {
 #if debug
         fprintf(stderr, "%s", "[libyangpush_find_import]parameter imported_module is NULL\n");
 #endif
@@ -240,23 +290,17 @@ find_dependency_err_code_t libyangpush_find_reverse_dep(int num_of_module, struc
 
     unsigned long hash;
     void *module_info_ptr = NULL;
-    for(int i = num_of_module; i > 0; i--) {
+    for(int i = LY_ARRAY_COUNT(module); i > 0; i--) {
         hash = djb2((char*)(module[i-1]->name)); //hash the module name
 
         if(cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_E_NOT_FOUND) { //module is not cached
-            struct module_info* yang_module_info; //fill in the module_info struct
-
-            yang_module_info = (struct module_info*)malloc(sizeof(struct module_info));
-            lys_print_mem(&(yang_module_info->yang_code), module[i-1], LYS_OUT_YANG, 0); //write the module content to module_yang_code
-            yang_module_info->name = (char*)(module[i-1]->name);
-
-            if(cdada_map_insert(module_set, &hash, yang_module_info) != CDADA_SUCCESS) { //inserted the module_info struct
-#if debug
-                fprintf(stderr, "%s%s", "[libyangpush_find_augment]Fail when inserting \n", module[i-1]->name);
-#endif
-                return INSERT_FAIL;
-            }
+            libyangpush_load_module_into_map(module_set, module[i-1]);
         }
+        else if (cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_SUCCESS) { //modules is cached
+            continue;
+        }
+        libyangpush_find_import(module[i-1]->parsed->imports, module_set);
+        libyangpush_find_include(module[i-1]->parsed->includes, module_set);
     }
     return FIND_DEPENDENCY_SUCCESS;
 }

@@ -3,5 +3,6 @@
 module: a-module
   +--rw a
      +--rw d:y
-        +--rw d:y-leaf?   string
+        +--rw d:y-leaf?   e:e-enum
+        +--rw d:c-leaf?   string
 ```

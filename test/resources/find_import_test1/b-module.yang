@@ -3,12 +3,18 @@ module b-module {
   namespace "urn:example:yang:b-module";
   prefix b;
 
+  import e-module {
+    prefix e;
+    revision-date 2023-06-13;
+  }
+
+
+  include "c-module";
+
   revision 2023-06-13;
 
   typedef myenum {
-    type enumeration {
-      enum "zero";
-    }
+    type e:e-enum;
   }
 
   typedef bar {
