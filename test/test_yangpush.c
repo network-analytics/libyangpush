@@ -7,6 +7,7 @@
 
 static void test_pattern_match(void** state)
 {
+    (void) state;
     char pattern1[20] = "/[^/:]*?:";
     char text1[50] = "/ietf-interfaces:myinterfaces/interfaces";
     char text2[50] = "ietf-interfaces:myinterface/interfaces";
@@ -43,6 +44,7 @@ static void test_pattern_match(void** state)
 
 static void test_find_namespace(void **state)
 {
+    (void) state;
     xmlDocPtr doc= NULL;
     xmlNodePtr node;
     xmlNs* namespaces;
@@ -81,6 +83,7 @@ static void test_find_namespace(void **state)
 
 static void test_parse_xpath(void** state)
 {
+    (void) state;
     xmlDocPtr doc= NULL;
     xmlNodePtr node;
     char* output1 = NULL, *output2 = NULL, *output3 = NULL, *output4 = NULL, *output5 = NULL;
@@ -130,6 +133,7 @@ static void test_parse_xpath(void** state)
 
 static void test_parse_subtree(void** state)
 {
+    (void) state;
     xmlDocPtr doc= NULL;
     xmlNodePtr node;
     int num_of_module = 0;
