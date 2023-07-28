@@ -6,10 +6,11 @@ This is a library used for parsing yang push messages and create schema for yang
 
 ## Requirements
 
-cmake >= 3.16.4
-meson >= 1.1.1
-cmocka >= 1.1.5
-libxml2 >= 2.9.10
+cmake >= 3.16.4  
+meson >= 1.1.1  
+cmocka >= 1.1.5  
+libxml2 >= 2.9.10  
+libcdada >= 0.4.0
 
 ## How to install
 
