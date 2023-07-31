@@ -8,8 +8,8 @@ module a-module {
       type string;
     }
     leaf a-enum {
-      type enumeration{
-        enum one;
+      type enumeration {
+        enum "one";
       }
     }
   }

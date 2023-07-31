@@ -103,20 +103,18 @@ static void test_find_import(void** state)
     //Test1: A valid test case. Find the import for a-module and check if it has been put into the cdada map
     assert_int_equal(libyangpush_find_import(test1_amodule->parsed->imports, test1_module_set, test1_reg_list, test1_dep_list), FIND_DEPENDENCY_SUCCESS);
     assert_int_equal(cdada_map_size(test1_module_set), 3); //num of modules in the map
-    assert_int_equal(cdada_list_size(test1_dep_list), 3);
     assert_int_equal(cdada_list_size(test1_reg_list), 3);
-    cdada_list_t *b_module_dep_list = assert_found_module("b-module", test1_bmodule_text, test1_module_set, test1_reg_list, 0);
-    cdada_list_t *e_module_dep_list = assert_found_module("e-module", test1_emodule_text, test1_module_set, test1_reg_list, 1);
-    cdada_list_t *c_module_dep_list = assert_found_module("c-module", test1_cmodule_text, test1_module_set, test1_reg_list, 2);
+    cdada_list_t *e_module_dep_list = assert_found_module("e-module", test1_emodule_text, test1_module_set, test1_reg_list, 0);
+    cdada_list_t *c_module_dep_list = assert_found_module("c-module", test1_cmodule_text, test1_module_set, test1_reg_list, 1);
+    cdada_list_t *b_module_dep_list = assert_found_module("b-module", test1_bmodule_text, test1_module_set, test1_reg_list, 2);
     //For dependency_list of each module
-    unsigned long module_hash;
+    assert_int_equal(cdada_list_size(test1_dep_list), 1);
+    assert_found_module("b-module", test1_bmodule_text, test1_module_set, test1_dep_list, 0);
     assert_int_equal(cdada_list_size(e_module_dep_list), 0); // e-module's dep_list's empty
     assert_int_equal(cdada_list_size(c_module_dep_list), 0); // c-module's dep_list's empty
     assert_int_equal(cdada_list_size(b_module_dep_list), 2); // e-module's dep_list has two modules
-    assert_int_equal(cdada_list_get(b_module_dep_list, 0, &module_hash), CDADA_SUCCESS);
-    assert_int_equal(module_hash, djb2("e-module"));
-    assert_int_equal(cdada_list_get(b_module_dep_list, 1, &module_hash), CDADA_SUCCESS);
-    assert_int_equal(module_hash, djb2("c-module"));
+    assert_found_module("e-module", test1_emodule_text, test1_module_set, b_module_dep_list, 0);
+    assert_found_module("c-module", test1_cmodule_text, test1_module_set, b_module_dep_list, 1);
 
     //load b-module in scenario 2 into test2 context
     struct lys_module* test2_bmodule = ly_ctx_load_module(test2_ctx, "b-module", NULL, NULL);
@@ -170,18 +168,18 @@ static void test_find_include(void** state)
     assert_int_equal(libyangpush_find_include(test1_amodule->parsed->includes, test1_module_set, test1_reg_list, test1_dep_list), FIND_DEPENDENCY_SUCCESS);
     assert_int_equal(cdada_map_size(test1_module_set), 3);
     assert_int_equal(cdada_list_size(test1_reg_list), 3);
-    cdada_list_t *c_module_dep_list = assert_found_module("c-module", test1_cmodule_text, test1_module_set, test1_reg_list, 0);
-    cdada_list_t *e_module_dep_list = assert_found_module("e-module", test1_emodule_text, test1_module_set, test1_reg_list, 1);
-    cdada_list_t *cc_module_dep_list = assert_found_module("cc-module", test1_ccmodule_text, test1_module_set, test1_reg_list, 2);
+    cdada_list_t *e_module_dep_list = assert_found_module("e-module", test1_emodule_text, test1_module_set, test1_reg_list, 0);
+    cdada_list_t *cc_module_dep_list = assert_found_module("cc-module", test1_ccmodule_text, test1_module_set, test1_reg_list, 1);
+    cdada_list_t *c_module_dep_list = assert_found_module("c-module", test1_cmodule_text, test1_module_set, test1_reg_list, 2);
     //For dependency_list of each module
-    unsigned long module_hash;
+    assert_int_equal(cdada_list_size(test1_dep_list), 2);
+    assert_found_module("c-module", test1_cmodule_text, test1_module_set, test1_dep_list, 0);
+    assert_found_module("cc-module", test1_ccmodule_text, test1_module_set, test1_dep_list, 1);
     assert_int_equal(cdada_list_size(e_module_dep_list), 0); // e-module's dep_list's empty
     assert_int_equal(cdada_list_size(cc_module_dep_list), 0); // c-module's dep_list's empty
     assert_int_equal(cdada_list_size(c_module_dep_list), 2); // e-module's dep_list has two modules
-    assert_int_equal(cdada_list_get(c_module_dep_list, 0, &module_hash), CDADA_SUCCESS);
-    assert_int_equal(module_hash, djb2("e-module"));
-    assert_int_equal(cdada_list_get(c_module_dep_list, 1, &module_hash), CDADA_SUCCESS);
-    assert_int_equal(module_hash, djb2("cc-module"));
+    assert_found_module("e-module", test1_emodule_text, test1_module_set, c_module_dep_list, 0);
+    assert_found_module("cc-module", test1_ccmodule_text, test1_module_set, c_module_dep_list, 1);
 
     //load b-module in scenario 2 into test2 context
     struct lys_module* test2_bmodule = ly_ctx_load_module(test2_ctx, "b-module", NULL, NULL);
@@ -214,14 +212,16 @@ static void test_find_reverse_dep(void** state)
     int return_check1 = ly_ctx_new("../test/resources/find_augment_test1", 1, &test1_ctx);
     int return_check2 = ly_ctx_new("../test/resources/test2", 1, &test2_ctx);
     int return_check3 = ly_ctx_new("../test/resources/find_deviate_test3", 1, &test3_ctx);
-    if(return_check1 != LY_SUCCESS || return_check2 != LY_SUCCESS || return_check3){
+    if(return_check1 != LY_SUCCESS || return_check2 != LY_SUCCESS || return_check3 != LY_SUCCESS){
         fprintf(stderr, "%s", "context creation error\n");
         return;
     }
 
+    char *test1_amodule_text = load_yang_example("../test/resources/find_augment_test1/a-module.yang");
     char *test1_dmodule_text = load_yang_example("../test/resources/find_augment_test1/d-module.yang");
     char *test1_cmodule_text = load_yang_example("../test/resources/find_augment_test1/c-module.yang");
     char *test1_emodule_text = load_yang_example("../test/resources/find_augment_test1/e-module.yang");
+    char *test3_amodule_text = load_yang_example("../test/resources/find_deviate_test3/a-module.yang");
     char *test3_deviate_text = load_yang_example("../test/resources/find_deviate_test3/a-module-deviations.yang");
     char *test3_strmodule_text = load_yang_example("../test/resources/find_deviate_test3/str-type.yang");
     char *test3_cmodule_text = load_yang_example("../test/resources/find_deviate_test3/c-module.yang");
@@ -234,29 +234,24 @@ static void test_find_reverse_dep(void** state)
     cdada_map_t* test1_module_set = cdada_map_create(unsigned long);
     cdada_list_t* test1_reg_list = cdada_list_create(unsigned long);
     cdada_list_t* test1_dep_list = cdada_list_create(unsigned long);
-    unsigned long hash = djb2((char*)test1_amodule->name);
     assert_non_null(libyangpush_load_module_into_map(test1_module_set, test1_amodule));
-    assert_int_equal(cdada_list_push_back(test1_reg_list, &hash), CDADA_SUCCESS);//push to list to avoid its dependency loading it again
 
     //Test1: A valid test case for finding augment. Find the augment for a-module and check if it has been put into the cdada map
     assert_int_equal(libyangpush_find_reverse_dep(test1_amodule->augmented_by, test1_module_set, test1_reg_list, test1_dep_list), FIND_DEPENDENCY_SUCCESS);
     assert_int_equal(cdada_map_size(test1_module_set), 4);
-    assert_int_equal(cdada_list_unique(test1_reg_list), CDADA_SUCCESS);
-    assert_int_equal(cdada_list_size(test1_reg_list), 4);
-    cdada_list_t *d_module_dep_list = assert_found_module("d-module", test1_dmodule_text, test1_module_set, test1_reg_list, 1);
-    cdada_list_t *e_module_dep_list = assert_found_module("e-module", test1_emodule_text, test1_module_set, test1_reg_list, 2);
-    cdada_list_t *c_module_dep_list = assert_found_module("c-module", test1_cmodule_text, test1_module_set, test1_reg_list, 3);
+    assert_int_equal(cdada_list_size(test1_reg_list), 3);
+    cdada_list_t *d_module_dep_list = assert_found_module("d-module", test1_dmodule_text, test1_module_set, test1_reg_list, 2);
+    cdada_list_t *e_module_dep_list = assert_found_module("e-module", test1_emodule_text, test1_module_set, test1_reg_list, 0);
+    cdada_list_t *c_module_dep_list = assert_found_module("c-module", test1_cmodule_text, test1_module_set, test1_reg_list, 1);
     //For dependency_list of each module
-    unsigned long module_hash;
+    assert_int_equal(cdada_list_size(test1_dep_list), 1); // for a-module's dep_list
+    assert_found_module("d-module", test1_dmodule_text, test1_module_set, test1_dep_list, 0);
     assert_int_equal(cdada_list_size(e_module_dep_list), 0); // e-module's dep_list's empty
     assert_int_equal(cdada_list_size(c_module_dep_list), 0); // c-module's dep_list's empty
     assert_int_equal(cdada_list_size(d_module_dep_list), 3); // d-module's dep_list has three modules(a, e, c)
-    assert_int_equal(cdada_list_get(d_module_dep_list, 0, &module_hash), CDADA_SUCCESS);
-    assert_int_equal(module_hash, djb2("a-module"));
-    assert_int_equal(cdada_list_get(d_module_dep_list, 1, &module_hash), CDADA_SUCCESS);
-    assert_int_equal(module_hash, djb2("e-module"));
-    assert_int_equal(cdada_list_get(d_module_dep_list, 2, &module_hash), CDADA_SUCCESS);
-    assert_int_equal(module_hash, djb2("c-module"));
+    assert_found_module("a-module", test1_amodule_text, test1_module_set, d_module_dep_list, 0);
+    assert_found_module("e-module", test1_emodule_text, test1_module_set, d_module_dep_list, 1);
+    assert_found_module("c-module", test1_cmodule_text, test1_module_set, d_module_dep_list, 2);
 
     //load b-module in scenario 2 into test2 context
     struct lys_module* test2_bmodule = ly_ctx_load_module(test2_ctx, "b-module", NULL, NULL);
@@ -276,31 +271,25 @@ static void test_find_reverse_dep(void** state)
     cdada_map_t* test3_module_set = cdada_map_create(unsigned long);
     cdada_list_t* test3_reg_list = cdada_list_create(unsigned long);
     cdada_list_t* test3_dep_list = cdada_list_create(unsigned long);
-    hash = djb2((char*)test3_amodule->name);
     assert_non_null(libyangpush_load_module_into_map(test3_module_set, test3_amodule));
-    assert_int_equal(cdada_list_push_back(test3_reg_list, &hash), CDADA_SUCCESS); //push to list to avoid its dependency loading it again
 
     //Test3: A valid test case for finding deviate. Find the deviations for a-module and check if it has been put into the cdada map
     assert_int_equal(libyangpush_find_reverse_dep(test3_amodule->deviated_by, test3_module_set, test3_reg_list, test3_dep_list), FIND_DEPENDENCY_SUCCESS);
     assert_int_equal(cdada_map_size(test3_module_set), 4);
-    assert_int_equal(cdada_list_unique(test1_reg_list), CDADA_SUCCESS);
-    assert_int_equal(cdada_list_size(test3_reg_list), 4);
-    cdada_list_t *a_deviate_dep_list = assert_found_module("a-module-deviations", test3_deviate_text, test3_module_set, test3_reg_list, 1);
-    cdada_list_t *str_deviate_dep_list = assert_found_module("str-type", test3_strmodule_text, test3_module_set, test3_reg_list, 2);
-    cdada_list_t *c_deviate_dep_list = assert_found_module("c-module", test3_cmodule_text, test3_module_set, test3_reg_list, 3);
+    assert_int_equal(cdada_list_size(test3_reg_list), 3);
+    cdada_list_t *str_deviate_dep_list = assert_found_module("str-type", test3_strmodule_text, test3_module_set, test3_reg_list, 0);
+    cdada_list_t *c_deviate_dep_list = assert_found_module("c-module", test3_cmodule_text, test3_module_set, test3_reg_list, 1);
+    cdada_list_t *a_deviate_dep_list = assert_found_module("a-module-deviations", test3_deviate_text, test3_module_set, test3_reg_list, 2);
     //For dependency_list of each module
+    assert_int_equal(cdada_list_size(test3_dep_list), 1); //for a-module's dep_list
+    assert_found_module("a-module-deviations", test3_deviate_text, test3_module_set, test3_dep_list, 0); 
     assert_int_equal(cdada_list_size(c_deviate_dep_list), 0); // e-module's dep_list's empty
     assert_int_equal(cdada_list_size(str_deviate_dep_list), 0); // c-module's dep_list's empty
     assert_int_equal(cdada_list_size(a_deviate_dep_list), 3); // e-module's dep_list has two modules
-    assert_int_equal(cdada_list_get(a_deviate_dep_list, 0, &module_hash), CDADA_SUCCESS);
-    assert_int_equal(module_hash, djb2("a-module"));
-    assert_int_equal(cdada_list_get(a_deviate_dep_list, 1, &module_hash), CDADA_SUCCESS);
-    assert_int_equal(module_hash, djb2("str-type"));
-    assert_int_equal(cdada_list_get(a_deviate_dep_list, 2, &module_hash), CDADA_SUCCESS);
-    assert_int_equal(module_hash, djb2("c-module"));
+    assert_found_module("a-module", test3_amodule_text, test3_module_set, a_deviate_dep_list, 0);
+    assert_found_module("str-type", test3_strmodule_text, test3_module_set, a_deviate_dep_list, 1);
+    assert_found_module("c-module", test3_cmodule_text, test3_module_set, a_deviate_dep_list, 2);
 
-    cdada_list_rtraverse(test1_reg_list, &libyangpush_trav_list_n_clear_dep_list, test1_module_set);
-    cdada_list_rtraverse(test3_reg_list, &libyangpush_trav_list_n_clear_dep_list, test3_module_set);
     cdada_map_traverse(test1_module_set, &libyangpush_trav_clear_map, NULL);
     cdada_map_traverse(test3_module_set, &libyangpush_trav_clear_map, NULL);
     cdada_map_destroy(test1_module_set);
@@ -315,9 +304,11 @@ static void test_find_reverse_dep(void** state)
     ly_ctx_destroy(test1_ctx);
     ly_ctx_destroy(test2_ctx);
     ly_ctx_destroy(test3_ctx);
+    free(test1_amodule_text);
     free(test1_dmodule_text);
     free(test1_cmodule_text);
     free(test1_emodule_text);
+    free(test3_amodule_text);
     free(test3_deviate_text);
     free(test3_strmodule_text);
     free(test3_cmodule_text);

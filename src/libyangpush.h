@@ -41,22 +41,6 @@ struct module_info
 void libyangpush_trav_clear_map(const cdada_map_t* s, const void* k, void* v, void* opaque);
 
 /**
- * copy list from s to the list of opaque
- * @param s the cdada_list that's being traversed
- * @param k the key of the current element
- * @param opaque here pass the pointer to the list that we are going to copy element
-*/
-void libyangpush_trav_copy_list(const cdada_list_t* s, const void* k, void* opaque);
-
-/**
- * The function for cdada map to traversly register each element to schema registry & free the module_info struct
- * @param s the cdada_map that's being traversed
- * @param k the key to the current element
- * @param opaque User data (opaque ptr)
-*/
-void libyangpush_trav_list_n_clear_dep_list(const cdada_list_t* s, const void* k, void* opaque);
-
-/**
  * create module_info struct for yang module 'module' and insert it into cdada map
  * @param map the map in which the module_info is to be inserted
  * @param module the yang module to be loaded
