@@ -253,8 +253,8 @@ find_dependency_err_code_t libyangpush_find_import(struct lysp_import *imported_
         else if (cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_SUCCESS) { //modules is cached
             continue;
         }
-        if(libyangpush_find_import(imported_module->module->parsed->imports, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL || //recursive find dependency
-        libyangpush_find_include(imported_module->module->parsed->includes, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL) {
+        if(libyangpush_find_import(imported_module->module->parsed->imports, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL //recursive find dependency
+        || libyangpush_find_include(imported_module->module->parsed->includes, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL) {
             return INSERT_FAIL;
         }
         if(cdada_list_push_back(reg_list, &hash) != CDADA_SUCCESS || module_if_ptr == NULL) { //put into register list
@@ -289,8 +289,8 @@ find_dependency_err_code_t libyangpush_find_include(struct lysp_include *include
         else if (cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_SUCCESS) { //modules is cached
             continue;
         }
-        if(libyangpush_find_import(included_module->submodule->imports, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL || //recursive find dependency
-        libyangpush_find_include(included_module->submodule->includes, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL) {
+        if(libyangpush_find_import(included_module->submodule->imports, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL //recursive find dependency
+        || libyangpush_find_include(included_module->submodule->includes, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL) {
             return INSERT_FAIL;
         }
         if(cdada_list_push_back(reg_list, &hash) != CDADA_SUCCESS || module_if_ptr == NULL) { //put into register list
@@ -323,8 +323,8 @@ find_dependency_err_code_t libyangpush_find_reverse_dep(struct lys_module **modu
         else if (cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_SUCCESS) { //modules is cached
             continue;
         }
-        if(libyangpush_find_import(module[i-1]->parsed->imports, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL || //recursive find dependency
-        libyangpush_find_include(module[i-1]->parsed->includes, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL) {
+        if(libyangpush_find_import(module[i-1]->parsed->imports, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL //recursive find dependency
+        || libyangpush_find_include(module[i-1]->parsed->includes, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL) {
             return INSERT_FAIL;
         }
         if(cdada_list_push_back(reg_list, &hash) != CDADA_SUCCESS || module_if_ptr == NULL) { //put into register list
