@@ -229,7 +229,7 @@ size_t libyangpush_parse_subtree(xmlNodePtr datastore_subtree, char ***result)
     return child_index;
 }
 
-find_dependency_err_code_t libyangpush_find_import(struct lysp_import *imported_module, cdada_map_t *module_set, cdada_list_t *reg_list, cdada_list_t *dep_list)
+find_dependency_err_code_t libyangpush_find_import(struct lysp_import *imported_module, cdada_map_t *module_set, cdada_list_t *reg_list, cdada_list_t *dependencies_of_parent_module)
 {
     if(imported_module == NULL){
 #if debug
@@ -244,7 +244,7 @@ find_dependency_err_code_t libyangpush_find_import(struct lysp_import *imported_
         imported_module+=i;
         hash = djb2((char*)imported_module->name); //hash the module name
         struct module_info *module_if_ptr = NULL;
-        if(cdada_list_push_back(dep_list, &hash) != CDADA_SUCCESS) { //put into dependency list
+        if(cdada_list_push_back(dependencies_of_parent_module, &hash) != CDADA_SUCCESS) { //put into dependency list
             return INSERT_FAIL;
         }
         if(cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_E_NOT_FOUND) { //module is not cached
@@ -265,9 +265,9 @@ find_dependency_err_code_t libyangpush_find_import(struct lysp_import *imported_
     return FIND_DEPENDENCY_SUCCESS;
 }
 
-find_dependency_err_code_t libyangpush_find_include(struct lysp_include *include_module, cdada_map_t *module_set, cdada_list_t *reg_list, cdada_list_t *dep_list)
+find_dependency_err_code_t libyangpush_find_include(struct lysp_include *included_module, cdada_map_t *module_set, cdada_list_t *reg_list, cdada_list_t *dependencies_of_parent_module)
 {
-    if(include_module == NULL){
+    if(included_module == NULL){
 #if debug
         fprintf(stderr, "%s", "[libyangpush_find_import]Invalid input parameter\n");
 #endif
@@ -276,21 +276,21 @@ find_dependency_err_code_t libyangpush_find_include(struct lysp_include *include
 
     unsigned long hash;
     void *module_info_ptr = NULL;
-    for(int i = 0; i < (int)LY_ARRAY_COUNT(include_module); i++) {
-        include_module+=i;
-        hash = djb2((char*)include_module->name); //hash the module name
+    for(int i = 0; i < (int)LY_ARRAY_COUNT(included_module); i++) {
+        included_module+=i;
+        hash = djb2((char*)included_module->name); //hash the module name
         struct module_info *module_if_ptr = NULL;
-        if(cdada_list_push_back(dep_list, &hash) != CDADA_SUCCESS) { //put into dependency list
+        if(cdada_list_push_back(dependencies_of_parent_module, &hash) != CDADA_SUCCESS) { //put into dependency list
             return INSERT_FAIL;
         }
         if(cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_E_NOT_FOUND){ //module is not cached
-            module_if_ptr = libyangpush_load_submodule_into_map(module_set, include_module->submodule);
+            module_if_ptr = libyangpush_load_submodule_into_map(module_set, included_module->submodule);
         }
         else if (cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_SUCCESS) { //modules is cached
             continue;
         }
-        if(libyangpush_find_import(include_module->submodule->imports, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL || //recursive find dependency
-        libyangpush_find_include(include_module->submodule->includes, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL) {
+        if(libyangpush_find_import(included_module->submodule->imports, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL || //recursive find dependency
+        libyangpush_find_include(included_module->submodule->includes, module_set, reg_list, module_if_ptr->dependency_list) == INSERT_FAIL) {
             return INSERT_FAIL;
         }
         if(cdada_list_push_back(reg_list, &hash) != CDADA_SUCCESS || module_if_ptr == NULL) { //put into register list
@@ -300,7 +300,7 @@ find_dependency_err_code_t libyangpush_find_include(struct lysp_include *include
     return FIND_DEPENDENCY_SUCCESS;
 }
 
-find_dependency_err_code_t libyangpush_find_reverse_dep(struct lys_module **module, cdada_map_t *module_set, cdada_list_t *reg_list, cdada_list_t *dep_list)
+find_dependency_err_code_t libyangpush_find_reverse_dep(struct lys_module **module, cdada_map_t *module_set, cdada_list_t *reg_list, cdada_list_t *dependencies_of_parent_module)
 {
     if(module == NULL) {
 #if debug
@@ -314,7 +314,7 @@ find_dependency_err_code_t libyangpush_find_reverse_dep(struct lys_module **modu
     for(int i = LY_ARRAY_COUNT(module); i > 0; i--) {
         hash = djb2((char*)(module[i-1]->name)); //hash the module name
         struct module_info *module_if_ptr = NULL;
-        if(cdada_list_push_back(dep_list, &hash) != CDADA_SUCCESS) { //put into dependency list
+        if(cdada_list_push_back(dependencies_of_parent_module, &hash) != CDADA_SUCCESS) { //put into dependency list
             return INSERT_FAIL;
         }
         if(cdada_map_find(module_set, &hash, &module_info_ptr) == CDADA_E_NOT_FOUND) { //module is not cached

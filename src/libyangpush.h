@@ -103,32 +103,34 @@ xpath_parsing_err_code_t libyangpush_parse_xpath(xmlNodePtr datastore_xpath, cha
 size_t libyangpush_parse_subtree(xmlNodePtr datastore_subtree, char ***result);
 
 /**
- * Find the import module for the passed in 'imported_module'
+ * Find the imported module for the passed in 'imported_module'
  * the 'module_set' stores all modules concerned in a find_dependency
  * the found module will call find_dependency. The process is recursive.
  * 
  * @param imported_module the sized array for all import module of one module
  * @param module_set the cdada map that stores all modules
  * @param reg_list the ordered list for modules to be registered
- * @param dep_list the dependency list of the parent module
+ * @param dependencies_of_parent_module the dependency list of the parent module, while parent module means the parent 
+ *                                      for the list 'imported_module'
  * 
  * @return the error code for find_dependency
 */
-find_dependency_err_code_t libyangpush_find_import(struct lysp_import *imported_module, cdada_map_t *module_set, cdada_list_t *list, cdada_list_t *dep_list);
+find_dependency_err_code_t libyangpush_find_import(struct lysp_import *imported_module, cdada_map_t *module_set, cdada_list_t *list, cdada_list_t *dependencies_of_parent_module);
 
 /**
  * Find the include module for the passed in 'include_module'
  * the 'module_set' stores all modules concerned in a find_dependency.
  * the found module will call find_dependency. The process is recursive.
  * 
- * @param include_module the sized array for all include module of one module
+ * @param included_module the sized array for all include module of one module
  * @param module_set the cdada map that stores all modules
  * @param reg_list the ordered list for modules to be registered
- * @param dep_list the dependency list of the parent module
+ * @param dependencies_of_parent_module the dependency list of the parent module, while parent module means the parent 
+ *                                      for the list 'imported_module'
  * 
  * @return the error code for find_dependency
 */
-find_dependency_err_code_t libyangpush_find_include(struct lysp_include *include_module, cdada_map_t *module_set, cdada_list_t *list, cdada_list_t *dep_list);
+find_dependency_err_code_t libyangpush_find_include(struct lysp_include *included_module, cdada_map_t *module_set, cdada_list_t *list, cdada_list_t *dependencies_of_parent_module);
 
 /**
  * Find the reverse dependency modules(augment & deviate) for the passed in 'module'
@@ -138,8 +140,9 @@ find_dependency_err_code_t libyangpush_find_include(struct lysp_include *include
  * @param module the sized array for this reverse dependency module
  * @param module_set the cdada map that stores all modules
  * @param reg_list the ordered list for modules to be registered
- * @param dep_list the dependency list of the parent module
+ * @param dependencies_of_parent_module the dependency list of the parent module, while parent module means the parent 
+ *                                      for the list 'imported_module'
  * 
  * @return the error code for find_dependency
 */
-find_dependency_err_code_t libyangpush_find_reverse_dep(struct lys_module **module, cdada_map_t *module_set, cdada_list_t *list, cdada_list_t *dep_list);
+find_dependency_err_code_t libyangpush_find_reverse_dep(struct lys_module **module, cdada_map_t *module_set, cdada_list_t *list, cdada_list_t *dependencies_of_parent_module);
