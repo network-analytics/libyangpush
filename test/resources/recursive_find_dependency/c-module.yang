@@ -1,0 +1,14 @@
+submodule c-module {
+yang-version 1.1;
+belongs-to a-module {
+prefix a;
+}
+import e-module {
+prefix e;
+}
+grouping somegroup {
+leaf c-leaf {
+type e:e-enum;
+}
+}
+}
