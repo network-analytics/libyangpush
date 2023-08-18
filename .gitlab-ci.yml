@@ -23,6 +23,10 @@ unit-test:
     - meson setup build
     - cd build
     - meson test
+  artifacts:
+    when: on_failure
+    paths:
+      - build/meson-logs/testlog.txt
 
 functional-test:
   stage: functional-test
