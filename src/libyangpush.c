@@ -1,7 +1,7 @@
 /* libyangpush functionality */
 #include "libyangpush.h"
 #include "tool.h"
-#define debug 1
+
 void libyangpush_trav_clear_map(const cdada_map_t* traversed_map, const void* key, void* val, void* user_define_data)
 {
     (void) key;

@@ -141,15 +141,8 @@ static void test_find_module_direct_dep(void** state)
     //Test2: A non-valid test case. Call find_import for b-module which does not have import
     assert_int_equal(libyangpush_find_module_direct_dep(NULL, NULL, NULL), INVALID_PARAMETER);
 
-    //Test3: A non-valid test case. The map/list is definded but was destroyed(corrupted). Should return INVALID_PARAMETER
-    cdada_map_t *corrupted_module_set = cdada_list_create(unsigned long);
-    cdada_list_destroy(corrupted_module_set);
-    assert_non_null(corrupted_module_set);
-    assert_int_equal(libyangpush_find_module_direct_dep(test_amodule, corrupted_module_set, test_reg_list), INVALID_PARAMETER);
-
     cdada_map_traverse(test_module_set, &libyangpush_trav_clear_map, NULL);
     cdada_map_destroy(test_module_set);
-    cdada_map_destroy(corrupted_module_set);
     cdada_list_destroy(test_reg_list);
     ly_ctx_destroy(test_ctx);
     free(test_amodule_text);
@@ -204,12 +197,6 @@ static void test_find_submodule_direct_dep(void** state)
 
     //Test2: A non-valid test case. Call find_include for b-module which does not have include
     assert_int_equal(libyangpush_find_submodule_direct_dep(NULL, NULL, NULL), INVALID_PARAMETER);
-
-    //Test3: A non-valid test case. The map/list is definded but was destroyed(corrupted). Should return INVALID_PARAMETER
-    cdada_map_t *corrupted_module_set = cdada_list_create(unsigned long);
-    cdada_list_destroy(corrupted_module_set);
-    assert_non_null(corrupted_module_set);
-    assert_int_equal(libyangpush_find_module_direct_dep(test_amodule, corrupted_module_set, test_reg_list), INVALID_PARAMETER);
 
     cdada_map_traverse(test_module_set, &libyangpush_trav_clear_map, NULL);
     cdada_map_destroy(test_module_set);
