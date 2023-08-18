@@ -33,30 +33,40 @@ struct module_info
 
 /**
  * The function for cdada map to traversly free the module_info struct
- * @param s the cdada_map that's being traversed
- * @param k the key of the current element
- * @param v the pointer to the value of the current element
- * @param opaque User data (opaque ptr)
+ * @param traversed_map the cdada_map that's being traversed
+ * @param key the key of the current element
+ * @param val the pointer to the value of the current element
+ * @param user_define_data User data (opaque ptr)
 */
-void libyangpush_trav_clear_map(const cdada_map_t* s, const void* k, void* v, void* opaque);
+void libyangpush_trav_clear_map(const cdada_map_t* traversed_map, const void* key, void* val, void* user_define_data);
+
+/**
+ * The function for cdada list to be copied on top of another list passed through user_define_data
+ * @param traversed_list the cdada_map that's being traversed
+ * @param key the key of the current element
+ * @param user_define_data User data (opaque ptr)
+*/
+void libyangpush_trav_copy_list(const cdada_map_t* traversed_list, const void* key, void* user_define_data);
 
 /**
  * create module_info struct for yang module 'module' and insert it into cdada map
  * @param map the map in which the module_info is to be inserted
  * @param module the yang module to be loaded
+ * @param hash_index the hash index od the element in the map
  * 
  * @return the inserted module_info struct
 */
-struct module_info* libyangpush_load_module_into_map(cdada_map_t *map, struct lys_module* module);
+struct module_info* libyangpush_load_module_into_map(cdada_map_t *map, struct lys_module* module, unsigned long hash_index);
 
 /**
  * create module_info struct for yang submodule 'module' and insert it into cdada map
  * @param map the map in which the module_info is to be inserted
  * @param module the yang submodule to be loaded
+ * @param hash_index the hash index od the element in the map
  * 
  * @return the inserted module_info struct
 */
-struct module_info* libyangpush_load_submodule_into_map(cdada_map_t *map, struct lysp_submodule* module);
+struct module_info* libyangpush_load_submodule_into_map(cdada_map_t *map, struct lysp_submodule* module, unsigned long hash_index);
 
 /** 
  * Perform pattern match for string
@@ -103,46 +113,87 @@ xpath_parsing_err_code_t libyangpush_parse_xpath(xmlNodePtr datastore_xpath, cha
 size_t libyangpush_parse_subtree(xmlNodePtr datastore_subtree, char ***result);
 
 /**
- * Find the imported module for the passed in 'imported_module'
- * the 'module_set' stores all modules concerned in a find_dependency
- * the found module will call find_dependency. The process is recursive.
+ * This function load the module into module_set map, register list
+ * and its direct dependency list into module's module_info
  * 
- * @param imported_module the sized array for all import module of one module
- * @param module_set the cdada map that stores all modules
- * @param reg_list the ordered list for modules to be registered
- * @param dependencies_of_parent_module the dependency list of the parent module, while parent module means the parent 
- *                                      for the list 'imported_module'
+ * @param module_set the cdada map tha contains all modules concern in a dependency-search
+ * @param register_list the ordered list of module to be registered to schema registry
+ * @param dependency_list this list belongs to the current module. It should be put into module_info struct
+ * @param module the yang module struct of current module
  * 
- * @return the error code for find_dependency
+ * @return find_dependency_err_code
 */
-find_dependency_err_code_t libyangpush_find_import(struct lysp_import *imported_module, cdada_map_t *module_set, cdada_list_t *list, cdada_list_t *dependencies_of_parent_module);
+find_dependency_err_code_t libyangpush_load_module_direct_dependency_into_map_and_list(cdada_map_t *module_set, cdada_list_t *register_list, cdada_list_t *dependency_list, struct lys_module *module);
 
 /**
- * Find the include module for the passed in 'include_module'
- * the 'module_set' stores all modules concerned in a find_dependency.
- * the found module will call find_dependency. The process is recursive.
+ * This function load the submodule into module_set map, register list
+ * and its direct dependency list into module's module_info
  * 
- * @param included_module the sized array for all include module of one module
- * @param module_set the cdada map that stores all modules
- * @param reg_list the ordered list for modules to be registered
- * @param dependencies_of_parent_module the dependency list of the parent module, while parent module means the parent 
- *                                      for the list 'imported_module'
+ * @param module_set the cdada map tha contains all modules concern in a dependency-search
+ * @param register_list the ordered list of module to be registered to schema registry
+ * @param dependency_list this list belongs to the current module. It should be put into module_info struct
+ * @param module the yang submodule struct of current module
  * 
- * @return the error code for find_dependency
+ * @return find_dependency_err_code
 */
-find_dependency_err_code_t libyangpush_find_include(struct lysp_include *included_module, cdada_map_t *module_set, cdada_list_t *list, cdada_list_t *dependencies_of_parent_module);
+find_dependency_err_code_t libyangpush_load_submodule_direct_dependency_into_map_and_list(cdada_map_t *module_set, cdada_list_t *register_list, cdada_list_t *dependency_list, struct lysp_submodule *module);
 
 /**
- * Find the reverse dependency modules(augment & deviate) for the passed in 'module'
- * the 'module_set' stores all modules concerned in a find_dependency call.
- * the found module will call find_dependency. The process is recursive.
+ * This function load the module into module_set map, register list(if it's not in module_set map yet)
+ * and its reverse dependency list into module's module_info
  * 
- * @param module the sized array for this reverse dependency module
- * @param module_set the cdada map that stores all modules
- * @param reg_list the ordered list for modules to be registered
- * @param dependencies_of_parent_module the dependency list of the parent module, while parent module means the parent 
- *                                      for the list 'imported_module'
+ * @param module_set the cdada map tha contains all modules concern in a dependency-search
+ * @param register_list the ordered list of module to be registered to schema registry
+ * @param dependency_list this list belongs to the current module. It should be put into module_info struct
+ * @param module the yang module struct of current module
  * 
- * @return the error code for find_dependency
+ * @return find_dependency_err_code
 */
-find_dependency_err_code_t libyangpush_find_reverse_dep(struct lys_module **module, cdada_map_t *module_set, cdada_list_t *list, cdada_list_t *dependencies_of_parent_module);
+find_dependency_err_code_t libyangpush_load_module_reverse_dependency_into_map_and_list(cdada_map_t *module_set, cdada_list_t *register_list, cdada_list_t *dependency_list, struct lys_module *module);
+
+/**
+ * find the direct dependency(include, import) of a module, and store then into module_set,
+ * and register in the reg_list
+ * 
+ * @param module the module that we are finding dependency for
+ * @param module_set the cdada_map that contains all modules concern in a find-dependency
+ * @param reg_list the ordered list of module to be registered into schema registry
+ * 
+ * @return find_dependency_err_code
+*/
+find_dependency_err_code_t libyangpush_find_module_direct_dep(struct lys_module *module, cdada_map_t *module_set, cdada_list_t *reg_list);
+
+/**
+ * find the direct dependency(include, import) of a submodule, and store then into module_set,
+ * and register in the reg_list
+ * 
+ * @param module the submodule that we are finding dependency for
+ * @param module_set the cdada_map that contains all modules concern in a find-dependency
+ * @param reg_list the ordered list of module to be registered into schema registry
+ * 
+ * @return find_dependency_err_code
+*/
+find_dependency_err_code_t libyangpush_find_submodule_direct_dep(struct lysp_submodule *module, cdada_map_t *module_set, cdada_list_t *reg_list);
+
+/**
+ * find the reverse dependency(augment, deviate) of module, and store then into module_set,
+ * and register in the reg_list
+ * 
+ * @param module the module that we are finding dependency for
+ * @param module_set the cdada_map that contains all modules concern in a find-dependency
+ * @param reg_list the ordered list of module to be registered into schema registry
+ * 
+ * @return find_dependency_err_code
+*/
+find_dependency_err_code_t libyangpush_find_module_reverse_dep(struct lys_module *module, cdada_map_t *module_set, cdada_list_t *reg_list);
+
+/**
+ * the top level function for find all dependency(import, include, augment, deviate)
+ * 
+ * @param module the module that we are finding dependency for
+ * @param module_set the cdada_map that contains all modules concern in a find-dependency
+ * @param reg_list the ordered list of module to be registered into schema registry
+ * 
+ * @return find_dependency_err_code
+*/
+find_dependency_err_code_t libyangpush_find_all_dependency(struct lys_module *module, cdada_map_t *module_set, cdada_list_t *reg_list);
