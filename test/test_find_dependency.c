@@ -340,7 +340,7 @@ static void test_find_all_dependency(void** state)
     cdada_list_t* test_reg_list = cdada_list_create(unsigned long);
 
     //Test1: A valid test case for finding augment. Find the augment for a-module and check if it has been put into the cdada map
-    assert_int_equal(libyangpush_find_module_reverse_dep(test_amodule, test_module_set, test_reg_list), FIND_DEPENDENCY_SUCCESS);
+    assert_int_equal(libyangpush_find_all_dependency(test_amodule, test_module_set, test_reg_list), FIND_DEPENDENCY_SUCCESS);
     assert_int_equal(cdada_map_size(test_module_set), 9);
     assert_int_equal(cdada_list_size(test_reg_list), 9);
     assert_found_module_in_map("e-module", test_emodule_text, test_module_set, djb2("e-module"));

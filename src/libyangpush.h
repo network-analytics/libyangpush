@@ -5,6 +5,7 @@
 #include <libyang/libyang.h>
 #include <cdada/map.h>
 #include <cdada/list.h>
+#include <jansson.h>
 //Error codes
 typedef enum
 {
@@ -30,6 +31,25 @@ struct module_info
     char    *yang_code; /* The yang code of this module */
     cdada_list_t *dependency_list;
 };
+
+struct cdadamap_n_schemaid
+{
+    cdada_map_t *module_set;
+    int schema_id;
+};
+
+json_t* libyangpush_create_reference(struct module_info *module_ptr, cdada_map_t *map);
+
+/**
+ * create schema for the module stored in module_ptr
+ * @param module_ptr pointer to the struct module_info that stores information of the module being registered
+ * @param map the map that stores all modules concered in the schema registration
+ * 
+ * @return schema_id
+*/
+int libyangpush_create_schema(struct module_info *module_ptr, cdada_map_t *map);
+
+void libyangpush_trav_list_register_schema(const cdada_list_t* reg_list, const void* key, void* user_data);
 
 /**
  * The function for cdada map to traversly free the module_info struct

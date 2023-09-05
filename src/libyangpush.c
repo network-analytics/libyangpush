@@ -1,6 +1,95 @@
 /* libyangpush functionality */
 #include "libyangpush.h"
 #include "tool.h"
+#include <sys/time.h>
+
+json_t* libyangpush_create_reference(struct module_info *module_ptr, cdada_map_t *map)
+{
+    unsigned long hash = djb2(module_ptr->name);
+    if(module_ptr == NULL || map == NULL){
+        return NULL;
+    }
+    json_t *references = json_array();
+    char subject[256], timestamp[16];
+
+    time_t local_time = time(NULL);
+    struct tm *tm;
+    tm = localtime(&local_time);
+    sprintf(timestamp,"%04d%02d%02d%02d%02d%02d", tm->tm_year+1900, tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+    sprintf(subject, "%s%s_%s", SUBJECT_PREFIX, module_ptr->name, timestamp);
+
+    for(int i = 0; i < (int)cdada_list_size(module_ptr->dependency_list); i++) {
+        unsigned long dependency_hash;
+        struct module_info *dependency_module_ptr = NULL;
+        cdada_list_get(module_ptr->dependency_list, i, &dependency_hash);
+        if(dependency_hash == hash){ //If the parent happends to be in the dep_list, continue
+            continue;
+        }
+        cdada_map_find(map, &dependency_hash, (void**)&dependency_module_ptr);
+
+        json_t *reference = json_pack("{s:s,s:s,s:i}", //schematype, reference, schema
+                                "subject",   subject,
+                                "name",      dependency_module_ptr->name,
+                                "version",   1);
+        json_array_append(references, reference);
+        json_decref(reference);
+    }
+    return references;
+}
+
+int libyangpush_create_schema(struct module_info *module_ptr, cdada_map_t *map)
+{
+    json_t *references = libyangpush_create_reference(module_ptr, map);
+    json_t *schema = json_pack("{s:s,s:o*,s:s}", //schematype, reference, schema
+                               "schemaType",    "YANG",
+                               "references",    references,
+                               "schema",    module_ptr->yang_code);
+
+    char subject[256], timestamp[16];
+
+    time_t local_time = time(NULL);
+    struct tm *tm;
+    tm = localtime(&local_time);
+    sprintf(timestamp,"%04d%02d%02d%02d%02d%02d", tm->tm_year+1900, tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+    sprintf(subject, "%s%s_%s", SUBJECT_PREFIX, module_ptr->name, timestamp);
+
+    int schema_id = register_schema(schema, subject);
+#if check_schema
+    char file_path[100];
+    sprintf(file_path, "../resources/schemas/%s.json", module_ptr->name);
+    printf("json dump %d\n", json_dump_file(schema, file_path, JSON_ENSURE_ASCII));
+
+    char* json_schema = json_dumps(schema, JSON_ENSURE_ASCII);
+    printf("%s\n\n", json_schema);
+    free(json_schema);
+#endif
+    json_decref(references);
+    json_decref(schema);
+#if schema_debug
+    printf("=> schema id %d\n\n\n", schema_id);
+#endif
+    return schema_id;
+}
+
+void libyangpush_trav_list_register_schema(const cdada_list_t* reg_list, const void* key, void* user_data)
+{
+    (void) reg_list;
+    cdada_map_t *module_set = ((struct cdadamap_n_schemaid*)user_data)->module_set;
+    unsigned long hash = *(unsigned long*)key;
+
+    struct module_info *module_ptr;
+    if(cdada_map_find((cdada_map_t*)module_set, &hash, (void**)&module_ptr) != CDADA_SUCCESS) {
+#if debug
+        fprintf(stderr, "%s", "[libyangpush_trav_register_schema]Fail when finding in map\n");
+#endif
+        return;
+    }
+#if schema_debug
+    printf("module name: %s\n", module_ptr->name);
+#endif
+    ((struct cdadamap_n_schemaid*)user_data)->schema_id = libyangpush_create_schema(module_ptr, module_set);
+    return;
+}
 
 void libyangpush_trav_clear_map(const cdada_map_t* traversed_map, const void* key, void* val, void* user_define_data)
 {
@@ -297,12 +386,12 @@ find_dependency_err_code_t libyangpush_load_submodule_direct_dependency_into_map
 find_dependency_err_code_t libyangpush_load_module_reverse_dependency_into_map_and_list(cdada_map_t *module_set, cdada_list_t *register_list, cdada_list_t *dependency_list, struct lys_module *module)
 {
     unsigned long hash = djb2((char*)module->name);
-    char a_module_new_name[100];
+    char module_new_name[100];
     struct module_info * module_info_ptr = NULL;
     
     if (cdada_map_find(module_set, &hash, (void**)&module_info_ptr) == CDADA_SUCCESS) { //module is cached
-        sprintf(a_module_new_name, "%s-full-dependency", module->name);
-        hash = djb2(a_module_new_name);
+        sprintf(module_new_name, "%s-full-dependency", module->name);
+        hash = djb2(module_new_name);
         struct module_info *new_module_info_ptr = libyangpush_load_module_into_map(module_set, module, hash);
         new_module_info_ptr->dependency_list = cdada_list_create(unsigned long); 
         cdada_list_traverse(module_info_ptr->dependency_list, libyangpush_trav_copy_list, new_module_info_ptr->dependency_list);
