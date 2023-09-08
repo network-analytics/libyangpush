@@ -32,24 +32,50 @@ struct module_info
     cdada_list_t *dependency_list;
 };
 
-struct cdadamap_n_schemaid
+/**
+ * @brief defined for being passed as user_data to the list traverse function 
+*/
+struct schema_info
 {
     cdada_map_t *module_set;
     int schema_id;
+    char *version;
 };
 
-json_t* libyangpush_create_reference(struct module_info *module_ptr, cdada_map_t *map);
+/**
+ * create schema references accordingto the dependency list in the module_info 
+ * struct and return the json reference object
+ * @param module_ptr the pointer to the module_info struct
+ * @param module_set the module set that contains all modules for one subscription
+ * 
+ * @return json object of the schema reference
+ */
+json_t* libyangpush_create_reference(struct module_info *module_ptr, cdada_map_t *module_set, char *version);
 
 /**
  * create schema for the module stored in module_ptr
  * @param module_ptr pointer to the struct module_info that stores information of the module being registered
- * @param map the map that stores all modules concered in the schema registration
+ * @param module_set the map that stores all modules concered in the schema registration
+ * @param module_name_hash the djb2 hash of the name of the currently processing module
  * 
- * @return schema_id
+ * @return the json object of the schema
 */
-int libyangpush_create_schema(struct module_info *module_ptr, cdada_map_t *map);
+json_t* libyangpush_create_schema(struct module_info *module_ptr, json_t *references);
 
-void libyangpush_trav_list_register_schema(const cdada_list_t* reg_list, const void* key, void* user_data);
+/**
+ * A traverse function for cdada_list. The function is ran for each key in the list. 
+ * user_data should contain the pointer to struct cdadamap_n_schemaid. The struct 
+ * include the module set map and an integer to record the schema id. The key is 
+ * recorded as the hash of the module name. The function searches for the hash in 
+ * the module set and find the module_info of the module. The information in module_info 
+ * is used for creating schema
+ * @param reg_list the registration list
+ * @param key each element in the list
+ * @param user_data contains the cdadamap_n_schemaid struct
+ * 
+ * @return the schema id for this subscription is recorded in the schema_id in user_data
+*/
+void libyangpush_trav_list_register_schema(const cdada_list_t* reg_list, const void* key, void* schema_info);
 
 /**
  * The function for cdada map to traversly free the module_info struct
@@ -59,14 +85,6 @@ void libyangpush_trav_list_register_schema(const cdada_list_t* reg_list, const v
  * @param user_define_data User data (opaque ptr)
 */
 void libyangpush_trav_clear_map(const cdada_map_t* traversed_map, const void* key, void* val, void* user_define_data);
-
-/**
- * The function for cdada list to be copied on top of another list passed through user_define_data
- * @param traversed_list the cdada_map that's being traversed
- * @param key the key of the current element
- * @param user_define_data User data (opaque ptr)
-*/
-void libyangpush_trav_copy_list(const cdada_map_t* traversed_list, const void* key, void* user_define_data);
 
 /**
  * create module_info struct for yang module 'module' and insert it into cdada map

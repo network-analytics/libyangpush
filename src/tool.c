@@ -1,5 +1,6 @@
 /* Tools functions */
 #include "tool.h"
+
 unsigned long djb2(char *str)
 {
     unsigned long hash = 5381;
@@ -12,10 +13,10 @@ unsigned long djb2(char *str)
     return hash;
 }
 
-static size_t print_schema_registry_response_clb(void *ptr, size_t size, size_t nmemb, void *data)
+size_t print_schema_registry_response_clb(void *response, size_t size, size_t nmemb, void *data)
 {
     int schemaID;
-    sscanf((char*)ptr, "{\"id\":%d}", &schemaID);
+    sscanf((char*)response, "{\"id\":%d}", &schemaID);
     *(int*)data = schemaID;
 
     return size * nmemb;
@@ -42,7 +43,6 @@ int register_schema(json_t *schema, char *subject_name)
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postthis);
-        // curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, print_schema_registry_response_clb);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, print_schema_registry_response_clb);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&schema_id);
         /* if we do not provide POSTFIELDSIZE, libcurl will strlen() by
@@ -61,4 +61,12 @@ int register_schema(json_t *schema, char *subject_name)
     curl_slist_free_all(chunk);
     free(postthis);
     return schema_id;
+}
+
+void trav_copy_list(const cdada_map_t* traversed_list, const void* key, void* result_list)
+{
+    (void) traversed_list;
+    if(cdada_list_push_front((cdada_list_t*)result_list, key) != CDADA_SUCCESS) {
+        return;
+    }
 }
