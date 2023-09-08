@@ -63,3 +63,11 @@ RUN cd libyang && mkdir build && cd build && cmake .. && make install
 # Install libcdada@v0.4.0
 RUN git clone --depth 1 --branch v0.4.0 https://github.com/msune/libcdada.git libcdada
 RUN cd libcdada && sh autogen.sh && cd build && ../configure && make install
+
+#Install libcurl@8.2.1
+RUN git clone --depth 1 --branch curl-8_2_1 https://github.com/curl/curl.git curl
+RUN cd curl && mkdir build && cd build && cmake .. && make install
+
+#Install jansson@2.14
+RUN git clone --depth 1 --branch v2.14 https://github.com/akheron/jansson.git jansson
+RUN cd jansson && autoreconf -i && ./configure && make && make install

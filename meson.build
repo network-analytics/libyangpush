@@ -40,7 +40,7 @@ libcdada_dep = cc.find_library('libcdada',
   dirs: ['/usr/local/lib']
 )
 
-libcurl_dep = cc.find_library('libcurl', 
+libcurl_dep = cc.find_library('curl', 
   dirs: ['/usr/local/lib']
 )
 
