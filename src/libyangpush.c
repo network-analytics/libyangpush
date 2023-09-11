@@ -2,7 +2,7 @@
 #include "libyangpush.h"
 #include "tool.h"
 
-json_t* libyangpush_create_reference(struct module_info *module_ptr, cdada_map_t *module_set, char *version)
+json_t* libyangpush_create_reference(struct module_info *module_ptr, cdada_map_t *module_set, char *version, char *subject_prefix)
 {
     unsigned long hash = djb2(module_ptr->name);
     if(module_ptr == NULL || module_set == NULL) {
@@ -20,7 +20,7 @@ json_t* libyangpush_create_reference(struct module_info *module_ptr, cdada_map_t
             continue;
         }
         cdada_map_find(module_set, &dependency_hash, (void**)&dependency_module_ptr);
-        sprintf(subject, "%s%s_%lu", SUBJECT_PREFIX, dependency_module_ptr->name, dependency_hash);
+        sprintf(subject, "%s%s_%lu", subject_prefix, dependency_module_ptr->name, dependency_hash);
         json_t *reference = json_pack("{s:s,s:s,s:s}", //schematype, reference, schema
                                 "subject",   subject,
                                 "name",      dependency_module_ptr->name,
@@ -54,11 +54,11 @@ void libyangpush_trav_list_register_schema(const cdada_list_t* reg_list, const v
         return;
     }
     char subject[256];
-    sprintf(subject, "%s%s_%lu", SUBJECT_PREFIX, module_ptr->name, hash);
+    sprintf(subject, "%s%s_%lu", ((struct schema_info*)schema_info)->schema_subject_prefix, module_ptr->name, hash);
 
-    json_t *references = libyangpush_create_reference(module_ptr, module_set, ((struct schema_info*)schema_info)->version);
+    json_t *references = libyangpush_create_reference(module_ptr, module_set, ((struct schema_info*)schema_info)->version, ((struct schema_info*)schema_info)->schema_subject_prefix);
     json_t *schema = libyangpush_create_schema(module_ptr, references);
-    ((struct schema_info*)schema_info)->schema_id = register_schema(schema, subject);
+    ((struct schema_info*)schema_info)->schema_id = register_schema(((struct schema_info*)schema_info)->schema_registry_address, schema, subject);
 #if check_schema
     char file_path[512];
     sprintf(file_path, "../resources/schemas/%s.json", subject);

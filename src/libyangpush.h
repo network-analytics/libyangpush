@@ -40,6 +40,8 @@ struct schema_info
     cdada_map_t *module_set;
     int schema_id;
     char *version;
+    char *schema_registry_address;
+    char *schema_subject_prefix;
 };
 
 /**
@@ -50,7 +52,7 @@ struct schema_info
  * 
  * @return json object of the schema reference
  */
-json_t* libyangpush_create_reference(struct module_info *module_ptr, cdada_map_t *module_set, char *version);
+json_t* libyangpush_create_reference(struct module_info *module_ptr, cdada_map_t *module_set, char *version, char *subject_prefix);
 
 /**
  * create schema for the module stored in module_ptr

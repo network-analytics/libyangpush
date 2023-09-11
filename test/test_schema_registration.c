@@ -41,7 +41,7 @@ void assert_schema(char *filepath, unsigned long hash, cdada_map_t *module_set){
 #endif
         return;
     }
-    json_t *references = libyangpush_create_reference(module_ptr, module_set, "1");
+    json_t *references = libyangpush_create_reference(module_ptr, module_set, "1", "subject_");
     json_t *schema = libyangpush_create_schema(module_ptr, references);
     assert_int_equal(json_equal(schema, module_schema), 1);
 
@@ -50,7 +50,7 @@ void assert_schema(char *filepath, unsigned long hash, cdada_map_t *module_set){
     json_decref(module_schema);
 }
 
-static void test_schema_registration(void** state)
+static void test_schema_generation(void** state)
 {
     (void) state;
     struct ly_ctx *test_ctx;
@@ -90,7 +90,7 @@ static void test_schema_registration(void** state)
 int main(void)
 {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(test_schema_registration)
+        cmocka_unit_test(test_schema_generation)
     };
     
     return cmocka_run_group_tests(tests, NULL, NULL);

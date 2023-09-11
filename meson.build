@@ -98,7 +98,7 @@ test('test_tool',
   executable(
     'test_tool',
     files('test/test_tool.c'),
-    dependencies: [project_dep, test_dep],
+    dependencies: [project_dependencies, project_dep, test_dep],
     install: false
   )
 )
