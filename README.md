@@ -28,6 +28,7 @@ libcurl >= 8.2.1
 meson setup build
 cd build
 meson compile
+meson install
 ```
 
 A Dockerfile is available under .ci/Dockerfile, which contains all the

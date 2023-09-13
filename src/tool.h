@@ -5,7 +5,8 @@
 #include <cdada/list.h>
 #include <libxml/tree.h>
 
-typedef enum {
+typedef enum
+{
     MESSAGE_STRUCTURE_VALID,
     MESSAGE_STRUCTURE_INVALID
 }message_parse_error_code_t;
@@ -58,9 +59,9 @@ xmlNodePtr xml_find_node(xmlNodePtr node, char* elem_name);
  * "push-update" or "push-change-update", "id", "datastore-contents" in its 
  * childs.
  * @param message the YANG push message to be validated
- * @param datastore_content_ptr the xml node pointer pointing to where we will store the datastore-content if validation succeeds.
+ * @param subscription_list_ptr the xml node pointer pointing to the subscription list
  * @param sub_id the integer pointer pointing to where we will store the subscription id if validation succeeds.
  * 
  * @return message_parse_error_code_t
 */
-message_parse_error_code_t validate_message_structure(void *message, xmlNodePtr *datastore_content_ptr, int *sub_id);
+message_parse_error_code_t validate_message_structure(void *message, xmlNodePtr *subscription_list_ptr, int *sub_id);

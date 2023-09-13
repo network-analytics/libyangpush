@@ -81,7 +81,7 @@ static void test_load_module_to_map(void** state)
     // Test 2: Non-valid test case. Passed null pointer into function
     assert_null(libyangpush_load_module_into_map(NULL, NULL, 0));
 
-    cdada_map_traverse(test_map, &libyangpush_trav_clear_map, NULL);
+    cdada_map_traverse(test_map, &libyangpush_trav_clear_module_set_map, NULL);
     cdada_map_destroy(test_map);
     ly_ctx_destroy(test_ctx);
     free(cmodule_text);
@@ -141,7 +141,7 @@ static void test_find_module_direct_dep(void** state)
     //Test2: A non-valid test case. Call find_import for b-module which does not have import
     assert_int_equal(libyangpush_find_module_direct_dep(NULL, NULL, NULL), INVALID_PARAMETER);
 
-    cdada_map_traverse(test_module_set, &libyangpush_trav_clear_map, NULL);
+    cdada_map_traverse(test_module_set, &libyangpush_trav_clear_module_set_map, NULL);
     cdada_map_destroy(test_module_set);
     cdada_list_destroy(test_reg_list);
     ly_ctx_destroy(test_ctx);
@@ -198,7 +198,7 @@ static void test_find_submodule_direct_dep(void** state)
     //Test2: A non-valid test case. Call find_include for b-module which does not have include
     assert_int_equal(libyangpush_find_submodule_direct_dep(NULL, NULL, NULL), INVALID_PARAMETER);
 
-    cdada_map_traverse(test_module_set, &libyangpush_trav_clear_map, NULL);
+    cdada_map_traverse(test_module_set, &libyangpush_trav_clear_module_set_map, NULL);
     cdada_map_destroy(test_module_set);
     cdada_list_destroy(test_reg_list);
     cdada_list_destroy(test_dep_list);
@@ -293,7 +293,7 @@ static void test_find_module_reverse_dep(void** state)
     assert_module_position_in_list("d-module", a_module_full_dep_list, 1);
     assert_module_position_in_list("a-module-deviations", a_module_full_dep_list, 0);
 
-    cdada_map_traverse(test_module_set, &libyangpush_trav_clear_map, NULL);
+    cdada_map_traverse(test_module_set, &libyangpush_trav_clear_module_set_map, NULL);
     cdada_map_destroy(test_module_set);
     cdada_list_destroy(test_reg_list);
     ly_ctx_destroy(test_ctx);
@@ -398,7 +398,7 @@ static void test_find_all_dependency(void** state)
     assert_module_position_in_list("d-module", a_module_full_dep_list, 1);
     assert_module_position_in_list("a-module-deviations", a_module_full_dep_list, 0);
     
-    cdada_map_traverse(test_module_set, &libyangpush_trav_clear_map, NULL);
+    cdada_map_traverse(test_module_set, &libyangpush_trav_clear_module_set_map, NULL);
     cdada_map_destroy(test_module_set);
     cdada_list_destroy(test_reg_list);
     ly_ctx_destroy(test_ctx);

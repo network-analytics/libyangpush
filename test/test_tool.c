@@ -63,14 +63,22 @@ static void test_validate_message_structure(void** state){
         "<notification xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\">"
             "<push-update xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-push\">"
                 "<id>1</id>"
-                    "<datastore-contents>test1</datastore-contents>"
+                    "<datastore-contents>"
+                        "<subscriptions>"
+                            "<subscription>test1</subscription>"
+                        "</subscriptions>"
+                    "</datastore-contents>"
             "</push-update>"
         "</notification>";
     char text2[300] =
         "<notification xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\">"
             "<push-change-update xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-push\">"
                 "<id>2</id>"
-                    "<datastore-contents>test2</datastore-contents>"
+                    "<datastore-contents>"
+                        "<subscriptions>"
+                            "<subscription>test2</subscription>"
+                        "</subscriptions>"
+                    "</datastore-contents>"
             "</push-change-update>"
         "</notification>";
     char text3[300] =

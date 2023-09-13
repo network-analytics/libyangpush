@@ -72,7 +72,8 @@ void trav_copy_list(const cdada_map_t* traversed_list, const void* key, void* re
 }
 
 /* Look for the node with key as the elem_name in xml tree */
-xmlNodePtr xml_find_node(xmlNodePtr node, char* elem_name){
+xmlNodePtr xml_find_node(xmlNodePtr node, char* elem_name)
+{
     xmlNodePtr result = NULL;
     while(node != NULL) {
         if((node->type == XML_ELEMENT_NODE) && (!xmlStrcmp(node->name, (const xmlChar*)elem_name)))
@@ -89,7 +90,8 @@ xmlNodePtr xml_find_node(xmlNodePtr node, char* elem_name){
     return NULL;
 }
 
-message_parse_error_code_t validate_message_structure(void *message, xmlNodePtr *datastore_content_ptr, int *sub_id){
+message_parse_error_code_t validate_message_structure(void *message, xmlNodePtr *subscription_list_ptr, int *sub_id)
+{
     xmlDocPtr xmlmsg;
     xmlmsg = xmlParseDoc((xmlChar*)message);
     xmlNodePtr current_node, prev_node;
@@ -113,7 +115,11 @@ message_parse_error_code_t validate_message_structure(void *message, xmlNodePtr 
                 free(id);
                 current_node = xml_find_node(current_node, "datastore-contents");
                 if(current_node != NULL){
-                    *datastore_content_ptr = xmlCopyNodeList(current_node);
+                    current_node = xml_find_node(current_node, "subscriptions");
+                    if(current_node != NULL){
+                        current_node = xml_find_node(current_node, "subscription");
+                        *subscription_list_ptr = xmlCopyNodeList(current_node);
+                    }
                 }
                 else {
 #if debug

@@ -73,7 +73,7 @@ void libyangpush_trav_list_register_schema(const cdada_list_t* reg_list, const v
     return;
 }
 
-void libyangpush_trav_clear_map(const cdada_map_t* traversed_map, const void* key, void* val, void* user_define_data)
+void libyangpush_trav_clear_module_set_map(const cdada_map_t* traversed_map, const void* key, void* val, void* user_define_data)
 {
     (void) key;
     (void) user_define_data;
@@ -84,6 +84,21 @@ void libyangpush_trav_clear_map(const cdada_map_t* traversed_map, const void* ke
     cdada_list_destroy(value->dependency_list);
     free(value);
     return;
+}
+
+void libyangpush_trav_clear_subscription_filter_map(const cdada_map_t* traversed_map, const void* key, void* val, void* user_define_data)
+{
+    (void) key;
+    (void) user_define_data;
+    (void) traversed_map;
+    struct subscription_filter_info *value = val;
+    if(value->module_num != 0) {
+        for(int i = 0; i < value->module_num; i++) {
+            free(value->filter[i]);
+        }
+        free(value->filter);
+    }
+    free(value);
 }
 
 struct module_info* libyangpush_load_module_into_map(cdada_map_t *map, struct lys_module* module, unsigned long hash_index)
@@ -592,4 +607,101 @@ find_dependency_err_code_t libyangpush_find_all_dependency(struct lys_module *mo
         return find_dependency_result;
     }
     return find_dependency_result;
+}
+
+void libyangpush_generate_subscription_info_with_xpath_filter(xmlNodePtr datastore_xpath_filter, 
+            int sub_id, cdada_map_t *subscription_filter)
+{
+    char *filter = NULL;
+    int find_xpath_error_code = libyangpush_parse_xpath(datastore_xpath_filter, &filter);
+    struct subscription_filter_info *sub_filter_info = malloc(sizeof(struct subscription_filter_info));
+    sub_filter_info->subscription_id = sub_id;
+
+    switch (find_xpath_error_code) {
+        case XPATH_PARSED_FAILED:
+            free(sub_filter_info);
+            return;
+        case XPATH_NAMESPACE_FOUND:;
+            sub_filter_info->filter_type = MODULE_NAMESPACE;
+            sub_filter_info->module_num = 1;
+            sub_filter_info->filter = (char**)malloc(sizeof(char*));
+            sub_filter_info->filter[0] = filter;
+            break;
+        case XPATH_MODULE_NAME_FOUND:;
+            sub_filter_info->filter_type = MODULE_NAME;
+            sub_filter_info->module_num = 1;
+            sub_filter_info->filter = (char**)malloc(sizeof(char*));
+            sub_filter_info->filter[0] = filter;
+            break;
+        default:
+            free(sub_filter_info);
+            return;
+    }
+    cdada_map_insert(subscription_filter, &sub_id, sub_filter_info);
+
+    return;
+}
+
+void libyangpush_generate_subscription_info_with_subtree_filter(xmlNodePtr datastore_subtree_filter, 
+            int sub_id, cdada_map_t *subscription_filter)
+{
+    char **filter;
+    int num_of_subscribed_modules = libyangpush_parse_subtree(datastore_subtree_filter, &filter);
+
+    if (num_of_subscribed_modules != 0) {
+        struct subscription_filter_info *sub_filter_info = malloc(sizeof(struct subscription_filter_info));
+        sub_filter_info->filter = filter;
+        sub_filter_info->module_num = num_of_subscribed_modules;
+        sub_filter_info->filter_type = MODULE_NAMESPACE;
+        sub_filter_info->subscription_id = sub_id;
+        cdada_map_insert(subscription_filter, &sub_id, sub_filter_info);
+    }
+    return;
+}
+
+void libyangpush_parse_subscription_filter(xmlNodePtr subscriptions, cdada_map_t *subscription_filter)
+{
+    if (subscriptions == NULL || subscription_filter == NULL) {
+        return;
+    }
+    void *map_val_ptr = NULL;
+    xmlNodePtr current_subscription = xml_find_node(subscriptions, "subscription");
+    while (current_subscription != NULL) {
+        /* Get the subscription id of the current subscription */
+        xmlNodePtr sub_id_node = xml_find_node(current_subscription, "id");
+        if (sub_id_node == NULL){ // if the subscription has no sub_id, it is invalid
+            return;
+        }
+        char* id_char = (char*)xmlNodeGetContent(sub_id_node);
+        int id = atoi(id_char);
+        free(id_char);
+
+        /* Check if this subscription has been processed or not */
+        if (cdada_map_find(subscription_filter, &id, map_val_ptr) == CDADA_SUCCESS) {
+            current_subscription = current_subscription->next;
+            continue;
+        }
+
+        xmlNodePtr datastore_filter_node = NULL;
+        
+        if (xml_find_node(current_subscription, "datastore-xpath-filter") != NULL) {
+            datastore_filter_node = xml_find_node(current_subscription, "datastore-xpath-filter");
+            libyangpush_generate_subscription_info_with_xpath_filter(datastore_filter_node, id, subscription_filter);
+        }
+        else if (xml_find_node(current_subscription, "datastore-subtree-filter") != NULL) {
+            datastore_filter_node = xml_find_node(current_subscription, "datastore-subtree-filter");
+            libyangpush_generate_subscription_info_with_subtree_filter(datastore_filter_node, id, subscription_filter);
+        }
+        /* datastore filter not found, id is the result */
+        else {
+            struct subscription_filter_info *sub_filter_info = malloc(sizeof(struct subscription_filter_info));
+            sub_filter_info->module_num = 0;
+            sub_filter_info->filter_type = SUBSCRIPTION_ID;
+            sub_filter_info->subscription_id = id;
+            cdada_map_insert(subscription_filter, &id, sub_filter_info);
+        }
+
+        current_subscription = current_subscription->next;
+    }
+    return;
 }

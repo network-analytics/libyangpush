@@ -47,7 +47,6 @@ libcurl_dep = cc.find_library('curl',
 project_dependencies = [
     dependency('LibXml2'),
     dependency('jansson'),
-    # dependency('libcurl'),
     libcurl_dep,
     libyang_dep,
     libcdada_dep,

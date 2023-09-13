@@ -3,6 +3,7 @@
 #include <setjmp.h>
 #include <stdio.h>
 #include <cmocka.h>
+#include <libxml/tree.h>
 #include "libyangpush.h"
 
 static void test_pattern_match(void** state)
@@ -274,13 +275,114 @@ static void test_parse_subtree(void** state)
     return;
 }
 
+static void test_parse_subscription(void** state)
+{
+    (void)state;
+    /* A valid test case */
+    char text1[1024] = 
+        "<subscriptions xmlns=\"urn:ietf:params:xml:ns:yang:ietf-subscribed-notifications\">"
+            "<subscription>"
+                "<id>2222</id>"
+                "<datastore-xpath-filter xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-push\" "
+                    "xmlns:a=\"urn:example:yang:a-module\">/a:a</datastore-xpath-filter>"
+            "</subscription>"
+            "<subscription>"
+                "<id>6666</id>"
+                "<datastore-xpath-filter xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-push\">"
+                    "/a-module:a</datastore-xpath-filter>"
+            "</subscription>"
+            "<subscription>"
+                "<id>8888</id>"
+                "<datastore-subtree-filter xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-push\">"
+                    "<a xmlns=\"urn:example:yang:a-module\"/>"
+                    "<interfaces xmlns=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\"/>"
+                "</datastore-subtree-filter>"
+            "</subscription>"
+        "</subscriptions>";
+
+    /* An invalid test case */
+    char text2[1024] = 
+        "<subscriptions xmlns=\"urn:ietf:params:xml:ns:yang:ietf-subscribed-notifications\">"
+            "<subscription>"
+                "<datastore-xpath-filter xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-push\" "
+                    "xmlns:a=\"urn:example:yang:a-module\">/a:a</datastore-xpath-filter>"
+            "</subscription>"
+        "</subscriptions>";
+
+    /* A valid test case that will return the subscription id */
+    char text3[1024] = 
+        "<subscriptions xmlns=\"urn:ietf:params:xml:ns:yang:ietf-subscribed-notifications\">"
+            "<subscription>"
+                "<id>7777</id>"
+            "</subscription>"
+        "</subscriptions>";
+
+    /* Test1 */
+    int test1_id1 = 2222, test1_id2 = 6666, test1_id3 = 8888, test3_id = 7777;
+    xmlDocPtr test1_xml = xmlParseDoc((xmlChar*)text1);
+    xmlNodePtr test1_root_node = xmlDocGetRootElement(test1_xml);
+    cdada_map_t *test1_subscription_filter = cdada_map_create(int);
+    struct subscription_filter_info *test1_subscription_info = NULL;
+
+    libyangpush_parse_subscription_filter(test1_root_node, test1_subscription_filter);
+    
+    assert_int_equal(cdada_map_find(test1_subscription_filter, &test1_id1, (void**)&test1_subscription_info), CDADA_SUCCESS);
+    assert_int_equal(test1_subscription_info->filter_type, MODULE_NAMESPACE);
+    assert_int_equal(test1_subscription_info->subscription_id, 2222);
+    assert_int_equal(test1_subscription_info->module_num, 1);
+    assert_string_equal(test1_subscription_info->filter[0], "urn:example:yang:a-module");
+
+    assert_int_equal(cdada_map_find(test1_subscription_filter, &test1_id2, (void**)&test1_subscription_info), CDADA_SUCCESS);
+    assert_int_equal(test1_subscription_info->filter_type, MODULE_NAME);
+    assert_int_equal(test1_subscription_info->subscription_id, 6666);
+    assert_int_equal(test1_subscription_info->module_num, 1);
+    assert_string_equal(test1_subscription_info->filter[0], "a-module");
+
+    assert_int_equal(cdada_map_find(test1_subscription_filter, &test1_id3, (void**)&test1_subscription_info), CDADA_SUCCESS);
+    assert_int_equal(test1_subscription_info->filter_type, MODULE_NAMESPACE);
+    assert_int_equal(test1_subscription_info->subscription_id, 8888);
+    assert_int_equal(test1_subscription_info->module_num, 2);
+    assert_string_equal(test1_subscription_info->filter[0], "urn:example:yang:a-module");
+    assert_string_equal(test1_subscription_info->filter[1], "urn:ietf:params:xml:ns:yang:ietf-interfaces");
+
+    /* Test2 */
+    xmlDocPtr test2_xml = xmlParseDoc((xmlChar*)text2);
+    xmlNodePtr test2_root_node = xmlDocGetRootElement(test2_xml);
+    cdada_map_t *test2_subscription_filter = cdada_map_create(int);
+
+    libyangpush_parse_subscription_filter(test2_root_node, test2_subscription_filter);
+    assert_int_equal(cdada_map_empty(test2_subscription_filter), 1);
+
+    /* Test3 */
+    xmlDocPtr test3_xml = xmlParseDoc((xmlChar*)text3);
+    xmlNodePtr test3_root_node = xmlDocGetRootElement(test3_xml);
+    cdada_map_t *test3_subscription_filter = cdada_map_create(int);
+    struct subscription_filter_info *test3_subscription_info = NULL;
+
+    libyangpush_parse_subscription_filter(test3_root_node, test3_subscription_filter);
+    assert_int_equal(cdada_map_find(test3_subscription_filter, &test3_id, (void**)&test3_subscription_info), CDADA_SUCCESS);
+    assert_int_equal(test3_subscription_info->filter_type, SUBSCRIPTION_ID);
+    assert_int_equal(test3_subscription_info->subscription_id, 7777);
+    assert_int_equal(test3_subscription_info->module_num, 0);
+
+    xmlFreeDoc(test1_xml);
+    xmlFreeDoc(test2_xml);
+    xmlFreeDoc(test3_xml);
+    cdada_map_traverse(test1_subscription_filter, libyangpush_trav_clear_subscription_filter_map, NULL);
+    cdada_map_traverse(test3_subscription_filter, libyangpush_trav_clear_subscription_filter_map, NULL);
+    cdada_map_destroy(test1_subscription_filter);
+    cdada_map_destroy(test2_subscription_filter);
+    cdada_map_destroy(test3_subscription_filter);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_pattern_match),
         cmocka_unit_test(test_parse_xpath),
         cmocka_unit_test(test_find_namespace),
-        cmocka_unit_test(test_parse_subtree)
+        cmocka_unit_test(test_parse_subtree),
+        cmocka_unit_test(test_parse_subscription)
     };
     
     return cmocka_run_group_tests(tests, NULL, NULL);

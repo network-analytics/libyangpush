@@ -81,7 +81,7 @@ static void test_schema_generation(void** state)
     assert_schema("../test/resources/schemas/subject_e-module_7572251754673949.json", djb2("e-module"), test_module_set);
     assert_schema("../test/resources/schemas/subject_str-type_7572940225087085.json", djb2("str-type"), test_module_set);
 
-    cdada_map_traverse(test_module_set, &libyangpush_trav_clear_map, NULL);
+    cdada_map_traverse(test_module_set, &libyangpush_trav_clear_module_set_map, NULL);
     cdada_map_destroy(test_module_set);
     cdada_list_destroy(test_reg_list);
     ly_ctx_destroy(test_ctx);

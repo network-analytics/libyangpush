@@ -22,6 +22,23 @@ typedef enum
     INVALID_PARAMETER
 }find_dependency_err_code_t;
 
+typedef enum
+{
+    DIRECT_FORWARD,
+    SUBSCRIPTION_ID,
+    MODULE_NAMESPACE,
+    MODULE_NAME,
+}
+parse_subscription_err_code_t;
+
+struct subscription_filter_info
+{
+    parse_subscription_err_code_t filter_type;
+    int subscription_id;
+    int module_num;
+    char **filter;
+};
+
 /**
  * @brief cache the yang code and module name
  */
@@ -86,7 +103,16 @@ void libyangpush_trav_list_register_schema(const cdada_list_t* reg_list, const v
  * @param val the pointer to the value of the current element
  * @param user_define_data User data (opaque ptr)
 */
-void libyangpush_trav_clear_map(const cdada_map_t* traversed_map, const void* key, void* val, void* user_define_data);
+void libyangpush_trav_clear_module_set_map(const cdada_map_t* traversed_map, const void* key, void* val, void* user_define_data);
+
+/**
+ * The function for cdada map to traversly free the subscription_filter_info struct
+ * @param traversed_map the cdada_map that's being traversed
+ * @param key the key of the current element
+ * @param val the pointer to the value of the current element
+ * @param user_define_data User data (opaque ptr)
+*/
+void libyangpush_trav_clear_subscription_filter_map(const cdada_map_t* traversed_map, const void* key, void* val, void* user_define_data);
 
 /**
  * create module_info struct for yang module 'module' and insert it into cdada map
@@ -237,3 +263,37 @@ find_dependency_err_code_t libyangpush_find_module_reverse_dep(struct lys_module
  * @return find_dependency_err_code
 */
 find_dependency_err_code_t libyangpush_find_all_dependency(struct lys_module *module, cdada_map_t *module_set, cdada_list_t *reg_list);
+
+/**
+ * Parse the datastore_xpath_filter to find out the filter(namespace or module name),
+ * and store it in the subscription_filter cdada_map.
+ * 
+ * @param datastore_xpath_filter the xml xpath_filter node that needs to be parsed
+ * @param sub_id the subscription id that is gping to be used as the index for filter in the 'subscription_filter' cdada map
+ * @param subscription_filter the cdada mpa used to store the filter information the value is a pointer to 'struct subscription_filter_info'
+*/
+void libyangpush_generate_subscription_info_with_xpath_filter(xmlNodePtr datastore_xpath_filter, 
+            int sub_id, cdada_map_t *subscription_filter);
+
+/**
+ * Parse the datastore_subtree_filter to find out the filter(result can only be 
+ * namesapce), and store it in the subscription_filter cdada_map.
+ * 
+ * @param datastore_xpath_filter the xml xpath_filter node that needs to be parsed
+ * @param sub_id the subscription id that is gping to be used as the index for filter in the 'subscription_filter' cdada map
+ * @param subscription_filter the cdada mpa used to store the filter information the value is a pointer to 'struct subscription_filter_info'
+*/
+void libyangpush_generate_subscription_info_with_subtree_filter(xmlNodePtr datastore_subtree_filter, 
+            int sub_id, cdada_map_t *subscription_filter);
+
+/**
+ * This function parse the list of subscription in the xml YANG push message.
+ * The parsed subscription will be store in 'struct subscription_filter_info'
+ * that contains the subscription filter, filter type, subscription id, numbers
+ * of filter. All subscriptions will be parsed and pointers are stored in a 
+ * cdada map with index being the subscription id of them. 
+ * 
+ * @param subscriptions the xml subscriptions node that pointes to be subscription list that needs to be parsed
+ * @param subscription_filter the cdada mpa used to store the filter information the value is a pointer to 'struct subscription_filter_info'
+*/
+void libyangpush_parse_subscription_filter(xmlNodePtr subscriptions, cdada_map_t *subscription_filter);
