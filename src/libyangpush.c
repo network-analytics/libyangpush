@@ -667,7 +667,7 @@ void libyangpush_parse_subscription_filter(xmlNodePtr subscriptions, cdada_map_t
     void *map_val_ptr = NULL;
     xmlNodePtr current_subscription = xml_find_node(subscriptions, "subscription");
     while (current_subscription != NULL) {
-        /* Get the subscription id of the current subscription */
+        /* Get the subscription id of the current subscription */;
         xmlNodePtr sub_id_node = xml_find_node(current_subscription, "id");
         if (sub_id_node == NULL){ // if the subscription has no sub_id, it is invalid
             return;
@@ -679,6 +679,7 @@ void libyangpush_parse_subscription_filter(xmlNodePtr subscriptions, cdada_map_t
         /* Check if this subscription has been processed or not */
         if (cdada_map_find(subscription_filter, &id, map_val_ptr) == CDADA_SUCCESS) {
             current_subscription = current_subscription->next;
+            current_subscription = xml_find_node(current_subscription, "subscription");
             continue;
         }
 
@@ -702,6 +703,7 @@ void libyangpush_parse_subscription_filter(xmlNodePtr subscriptions, cdada_map_t
         }
 
         current_subscription = current_subscription->next;
+        current_subscription = xml_find_node(current_subscription, "subscription");
     }
     return;
 }

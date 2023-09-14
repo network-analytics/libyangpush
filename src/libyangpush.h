@@ -31,6 +31,9 @@ typedef enum
 }
 parse_subscription_err_code_t;
 
+/**
+ * @brief store the subscription filter information
+*/
 struct subscription_filter_info
 {
     parse_subscription_err_code_t filter_type;

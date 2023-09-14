@@ -128,3 +128,18 @@ test('test_schema_registration',
     install: false
   )
 )
+
+# ============
+# Example code
+# ============
+
+libnetconf_dep = cc.find_library('libnetconf2', 
+  dirs: ['/usr/local/lib']
+)
+
+executable(
+  'example',
+  files('example/example.c'),
+  dependencies: [project_dependencies, project_dep, libnetconf_dep],
+  install: false
+)
