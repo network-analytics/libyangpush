@@ -4,7 +4,7 @@ stages:
     - functional-test
 
 image:
-  name: registry-eu.inhuawei.com:5050/libyangpush-ci:v1.5.0
+  name: registry-eu.inhuawei.com:5050/libyangpush-ci:v1.6.0
 
 build:
   stage: build
