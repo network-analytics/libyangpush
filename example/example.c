@@ -1,5 +1,5 @@
-#include <yangpush/libyangpush.h>
-#include <yangpush/tool.h>
+#include <libyangpush.h>
+#include <tool.h>
 #include <libyang/libyang.h>
 #include <nc_client.h>
 #include <cdada/map.h>
