@@ -1,5 +1,5 @@
-#include <libyangpush.h>
-#include <tool.h>
+#include <yangpush/libyangpush.h>
+#include <yangpush/tool.h>
 #include <libyang/libyang.h>
 #include <nc_client.h>
 #include <cdada/map.h>
@@ -51,7 +51,6 @@ void trav_create_schema(const cdada_map_t* traversed_map, const void* key, void*
     (void) traversed_map;
     struct subscription_filter_info *value = val;
     struct ly_ctx *netconf_context = (struct ly_ctx*)user_define_data;
-
     if (value->module_num != 0) {
         cdada_map_t *module_set = cdada_map_create(unsigned long);
         cdada_list_t *reg_list = cdada_list_create(unsigned long);
@@ -110,7 +109,7 @@ int main()
     cdada_map_traverse(subscription_filters, libyangpush_trav_clear_subscription_filter_map, NULL);
     cdada_map_destroy(subscription_filters);
     free(msg);
-    xmlFreeNode(subscription_list_ptr);
+    xmlFreeNodeList(subscription_list_ptr);
     ly_ctx_destroy(module_context);
     nc_session_free(session, NULL);
     nc_client_destroy();
