@@ -15,6 +15,7 @@ typedef enum
 typedef enum
 {
     FIND_DEPENDENCY_SUCCESS,
+    INSERT_SUCCESS,
     INSERT_FAIL,
     INVALID_PARAMETER
 }find_dependency_err_code_t;
@@ -26,6 +27,33 @@ struct module_info{
     char    *name;   /* The name of this module in the set */
     char    *yang_code; /* The yang code of this module */
 };
+
+/**
+ * The function for cdada map to traversly free the module_info struct
+ * @param s the cdada_map that's being traversed
+ * @param k the key of the current element
+ * @param v the pointer to the value of the current element
+ * @param opaque User data (opaque ptr)
+*/
+void libyangpush_trav_clear_map(const cdada_map_t* s, const void* k, void* v, void* opaque);
+
+/**
+ * create module_info struct for yang module 'module' and insert it into cdada map
+ * @param map the map in which the module_info is to be inserted
+ * @param module the yang module to be loaded
+ * 
+ * @return find_dependency_err_code_t
+*/
+find_dependency_err_code_t libyangpush_load_module_into_map(cdada_map_t *map, struct lys_module* module);
+
+/**
+ * create module_info struct for yang submodule 'module' and insert it into cdada map
+ * @param map the map in which the module_info is to be inserted
+ * @param module the yang submodule to be loaded
+ * 
+ * @return find_dependency_err_code_t
+*/
+find_dependency_err_code_t libyangpush_load_submodule_into_map(cdada_map_t *map, struct lysp_submodule* module);
 
 /** 
  * Perform pattern match for string
@@ -76,10 +104,33 @@ size_t libyangpush_parse_subtree(xmlNodePtr datastore_subtree, char ***result);
  * the 'module_set' stores all modules concerned in a find_dependency
  * the found module will call find_dependency. The process is recursive.
  * 
- * @param num_of_imports the number of imported module that's stored in the 'imported_module' sized array
  * @param imported_module the sized array for all import module of one module
  * @param module_set the cdada map that stores all modules
  * 
  * @return the error code for find_dependency
 */
-find_dependency_err_code_t libyangpush_find_import(int num_of_imports, struct lysp_import *imported_module, cdada_map_t *module_set);
+find_dependency_err_code_t libyangpush_find_import(struct lysp_import *imported_module, cdada_map_t *module_set);
+
+/**
+ * Find the include module for the passed in 'include_module'
+ * the 'module_set' stores all modules concerned in a find_dependency.
+ * the found module will call find_dependency. The process is recursive.
+ * 
+ * @param include_module the sized array for all include module of one module
+ * @param module_set the cdada map that stores all modules
+ * 
+ * @return the error code for find_dependency
+*/
+find_dependency_err_code_t libyangpush_find_include(struct lysp_include *include_module, cdada_map_t *module_set);
+
+/**
+ * Find the reverse dependency modules(augment & deviate) for the passed in 'module'
+ * the 'module_set' stores all modules concerned in a find_dependency call.
+ * the found module will call find_dependency. The process is recursive.
+ * 
+ * @param module the sized array for this reverse dependency module
+ * @param module_set the cdada map that stores all modules
+ * 
+ * @return the error code for find_dependency
+*/
+find_dependency_err_code_t libyangpush_find_reverse_dep(struct lys_module **module, cdada_map_t *module_set);

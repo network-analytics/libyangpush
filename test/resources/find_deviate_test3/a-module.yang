@@ -1,0 +1,16 @@
+module a-module {
+  yang-version 1.1;
+  namespace "urn:example:yang:a-module";
+  prefix a;
+
+  container something {
+    leaf str-value {
+      type string;
+    }
+    leaf a-enum {
+      type enumeration{
+        enum one;
+      }
+    }
+  }
+}

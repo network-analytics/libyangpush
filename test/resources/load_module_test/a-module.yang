@@ -1,0 +1,12 @@
+module a-module {
+  yang-version 1.1;
+  namespace "urn:example:yang:a-module";
+  prefix a;
+
+
+  include "c-module";
+
+  container something {
+    uses somegroup;
+  }
+}
