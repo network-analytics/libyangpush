@@ -11,6 +11,7 @@ The main features include:
 - Generate a registration list for registering schemas
 - Create post json schema for YANG model
 
+The code in this branch is the most up-to-date with functionalities to create and register schemas.
 
 ## Requirements
 
@@ -41,3 +42,16 @@ meson setup build
 cd build
 meson test
 ``` 
+
+## Example program
+This branch provides an example program to use this library. To run the program, the user needs to configure a NETCONF device and a schema registry and specifies their ip address and port in the example.h file. For NETCONF server, user can use either public key or password authentication method. For the schema registry, user can specify the prefix they want for each schema. A folder called modules should be created in the example folder for storing the schemas fetched from NETCONF server.  
+The program uses the push-update.xml in the resources folder as a fake YANG push notification message. User can define theirs and use it by specifiying the path in example.h file.  
+To run the example program, use the following commands：
+```bash
+cd example
+mkdir modules
+meson setup build
+cd build
+meson compile
+./example_program
+```
