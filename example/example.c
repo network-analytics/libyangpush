@@ -69,7 +69,7 @@ void trav_create_schema(const cdada_map_t* traversed_map, const void* key, void*
         schema_info_ptr->schema_subject_prefix = SUBJECT_PREFIX;
         schema_info_ptr->version = "1";
         schema_info_ptr->module_set = module_set;
-        cdada_list_traverse(reg_list, libyangpush_trav_list_register_schema, schema_info_ptr);
+        cdada_list_rtraverse(reg_list, libyangpush_trav_list_register_schema, schema_info_ptr);
         printf("=>schema id %d\n", schema_info_ptr->schema_id);
         cdada_map_traverse(module_set, libyangpush_trav_clear_module_set_map, NULL);
         cdada_map_destroy(module_set);
