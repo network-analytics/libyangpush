@@ -32,11 +32,11 @@ project_test_files = [
 
 public_headers = include_directories('src')
 
-libyang_dep = cc.find_library('libyang', 
+libyang_dep = cc.find_library('yang', 
   dirs: ['/usr/local/lib']
 )
 
-libcdada_dep = cc.find_library('libcdada', 
+libcdada_dep = cc.find_library('cdada', 
   dirs: ['/usr/local/lib']
 )
 
