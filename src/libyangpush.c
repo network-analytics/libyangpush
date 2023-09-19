@@ -1,6 +1,6 @@
 /* libyangpush functionality */
 #include "libyangpush.h"
-#include "tool.h"
+// #include "tool.h"
 
 json_t* libyangpush_create_reference(struct module_info *module_ptr, cdada_map_t *module_set, char *version, char *subject_prefix)
 {

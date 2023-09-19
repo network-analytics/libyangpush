@@ -8,7 +8,6 @@
 #include <cdada/map.h>
 #include <cdada/list.h>
 #include "libyangpush.h"
-#include "tool.h"
 
 /* A helper function for loading file from disk */
 char* load_yang_example(char *filename) 

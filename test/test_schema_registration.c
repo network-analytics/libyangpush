@@ -7,7 +7,6 @@
 #include <cdada/map.h>
 #include <jansson.h>
 #include "libyangpush.h"
-#include "tool.h"
 
 /* A helper function for loading file from disk */
 json_t* load_json_from_file(char *filename) 

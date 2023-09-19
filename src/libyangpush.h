@@ -6,6 +6,7 @@
 #include <cdada/map.h>
 #include <cdada/list.h>
 #include <jansson.h>
+#include "tool.h"
 //Error codes
 typedef enum
 {

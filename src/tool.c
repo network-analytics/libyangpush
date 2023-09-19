@@ -1,5 +1,5 @@
 /* Tools functions */
-#include "tool.h"
+#include "libyangpush.h"
 
 unsigned long djb2(char *str)
 {
