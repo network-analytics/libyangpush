@@ -26,11 +26,12 @@ libcurl >= 8.2.1
 ## How to install
 
 ```bash
-meson setup build
+meson setup --libdir=/usr/local/lib build
 cd build
 meson compile
 meson install
 ```
+Setting ```--libdir=/usr/local/lib``` will install the library .so into /usr/lib.
 
 A Dockerfile is available under .ci/Dockerfile, which contains all the
 necessary dependencies to build the project.
