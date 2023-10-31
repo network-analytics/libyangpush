@@ -44,3 +44,6 @@ The main branch is the stable branch that contains code which has been validated
 - Create post json schema for YANG model
 
 The code in the feature/register_schema branch is the most up-to-date. It will be merged to main after testing.
+
+## Contribution
+This library is done by Zhuoyao Lin, a 2nd year master student in Ecole Polytechnique during her internship at Huawei Ireland Research Center, as an individual contributor.
