@@ -30,6 +30,13 @@ meson install
 A Dockerfile is available under .ci/Dockerfile, which contains all the
 necessary dependencies to build the project.
 
+# Test
+
+## Test purposes
+The test cases include testing the find-dependencies functionalities, 
+the djb2 function output, and the YANG push message parsing functionalities.
+
+
 ## How to run test
 The module set used for unit tests is stored in the /test/resources file
 ```bash
@@ -38,12 +45,14 @@ cd build
 meson test
 ``` 
 
-## Branches
+# Branches
 The main branch is the stable branch that contains code which has been validated. The feature/register_schema branch contains code for the following functionalities that has not been reviewed yet:  
 - Generate a registration list for registering schemas
-- Create post json schema for YANG model
+- Create post json schema for YANG model  
 
-The code in the feature/register_schema branch is the most up-to-date. It will be merged to main after testing.
+The devel branch contains code and functions that have been newly developed on top of the main branch and that is undergoing examination.
+
+The code in the feature/register_schema branch contains function for registering schemas into schema registry. 
 
 ## Contribution
-This library is done by Zhuoyao Lin, a 2nd year master student in Ecole Polytechnique during her internship at Huawei Ireland Research Center, as an individual contributor.
+This library is done by Zhuoyao Lin, as an individual contributor.
