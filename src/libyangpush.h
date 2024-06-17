@@ -4,6 +4,9 @@
 #include <libyang/tree_schema.h>
 #include <libyang/libyang.h>
 #include <cdada/map.h>
+#include <cdada/list.h>
+#include <jansson.h>
+#include "tool.h"
 //Error codes
 typedef enum
 {
@@ -15,45 +18,125 @@ typedef enum
 typedef enum
 {
     FIND_DEPENDENCY_SUCCESS,
-    INSERT_SUCCESS,
     INSERT_FAIL,
+    INSERT_SUCCESS,
     INVALID_PARAMETER
 }find_dependency_err_code_t;
+
+typedef enum
+{
+    DIRECT_FORWARD,
+    SUBSCRIPTION_ID,
+    MODULE_NAMESPACE,
+    MODULE_NAME,
+}
+parse_subscription_err_code_t;
+
+/**
+ * @brief store the subscription filter information
+*/
+struct subscription_filter_info
+{
+    parse_subscription_err_code_t filter_type;
+    int subscription_id;
+    int module_num;
+    char **filter;
+};
 
 /**
  * @brief cache the yang code and module name
  */
-struct module_info{
+struct module_info
+{
     char    *name;   /* The name of this module in the set */
     char    *yang_code; /* The yang code of this module */
+    cdada_list_t *dependency_list;
 };
 
 /**
- * The function for cdada map to traversly free the module_info struct
- * @param s the cdada_map that's being traversed
- * @param k the key of the current element
- * @param v the pointer to the value of the current element
- * @param opaque User data (opaque ptr)
+ * @brief defined for being passed as user_data to the list traverse function 
 */
-void libyangpush_trav_clear_map(const cdada_map_t* s, const void* k, void* v, void* opaque);
+struct schema_info
+{
+    cdada_map_t *module_set;
+    int schema_id;
+    char *version;
+    char *schema_registry_address;
+    char *schema_subject_prefix;
+};
+
+/**
+ * create schema references accordingto the dependency list in the module_info 
+ * struct and return the json reference object
+ * @param module_ptr the pointer to the module_info struct
+ * @param module_set the module set that contains all modules for one subscription
+ * 
+ * @return json object of the schema reference
+ */
+json_t* libyangpush_create_reference(struct module_info *module_ptr, cdada_map_t *module_set, char *version, char *subject_prefix);
+
+/**
+ * create schema for the module stored in module_ptr
+ * @param module_ptr pointer to the struct module_info that stores information of the module being registered
+ * @param module_set the map that stores all modules concered in the schema registration
+ * @param module_name_hash the djb2 hash of the name of the currently processing module
+ * 
+ * @return the json object of the schema
+*/
+json_t* libyangpush_create_schema(struct module_info *module_ptr, json_t *references);
+
+/**
+ * A traverse function for cdada_list. The function is ran for each key in the list. 
+ * user_data should contain the pointer to struct cdadamap_n_schemaid. The struct 
+ * include the module set map and an integer to record the schema id. The key is 
+ * recorded as the hash of the module name. The function searches for the hash in 
+ * the module set and find the module_info of the module. The information in module_info 
+ * is used for creating schema
+ * @param reg_list the registration list
+ * @param key each element in the list
+ * @param user_data contains the cdadamap_n_schemaid struct
+ * 
+ * @return the schema id for this subscription is recorded in the schema_id in user_data
+*/
+void libyangpush_trav_list_register_schema(const cdada_list_t* reg_list, const void* key, void* schema_info);
+
+/**
+ * The function for cdada map to traversly free the module_info struct
+ * @param traversed_map the cdada_map that's being traversed
+ * @param key the key of the current element
+ * @param val the pointer to the value of the current element
+ * @param user_define_data User data (opaque ptr)
+*/
+void libyangpush_trav_clear_module_set_map(const cdada_map_t* traversed_map, const void* key, void* val, void* user_define_data);
+
+/**
+ * The function for cdada map to traversly free the subscription_filter_info struct
+ * @param traversed_map the cdada_map that's being traversed
+ * @param key the key of the current element
+ * @param val the pointer to the value of the current element
+ * @param user_define_data User data (opaque ptr)
+*/
+void libyangpush_trav_clear_subscription_filter_map(const cdada_map_t* traversed_map, const void* key, void* val, void* user_define_data);
 
 /**
  * create module_info struct for yang module 'module' and insert it into cdada map
  * @param map the map in which the module_info is to be inserted
  * @param module the yang module to be loaded
+ * @param hash_index the hash index od the element in the map
  * 
- * @return find_dependency_err_code_t
+ * @return the inserted module_info struct
 */
-find_dependency_err_code_t libyangpush_load_module_into_map(cdada_map_t *map, struct lys_module* module);
+struct module_info* libyangpush_load_module_into_map(cdada_map_t *map, struct lys_module* module, unsigned long hash_index);
 
 /**
  * create module_info struct for yang submodule 'module' and insert it into cdada map
  * @param map the map in which the module_info is to be inserted
  * @param module the yang submodule to be loaded
+ * @param hash_index the hash index od the element in the map
  * 
- * @return find_dependency_err_code_t
+ * @return the inserted module_info struct
 */
-find_dependency_err_code_t libyangpush_load_submodule_into_map(cdada_map_t *map, struct lysp_submodule* module);
+struct module_info* libyangpush_load_submodule_into_map(cdada_map_t *map, struct lysp_submodule* module, unsigned long hash_index);
 
 /** 
  * Perform pattern match for string
@@ -100,37 +183,121 @@ xpath_parsing_err_code_t libyangpush_parse_xpath(xmlNodePtr datastore_xpath, cha
 size_t libyangpush_parse_subtree(xmlNodePtr datastore_subtree, char ***result);
 
 /**
- * Find the import module for the passed in 'imported_module'
- * the 'module_set' stores all modules concerned in a find_dependency
- * the found module will call find_dependency. The process is recursive.
+ * This function load the module into module_set map, register list
+ * and its direct dependency list into module's module_info
  * 
- * @param imported_module the sized array for all import module of one module
- * @param module_set the cdada map that stores all modules
+ * @param module_set the cdada map tha contains all modules concern in a dependency-search
+ * @param register_list the ordered list of module to be registered to schema registry
+ * @param dependency_list this list belongs to the current module. It should be put into module_info struct
+ * @param module the yang module struct of current module
  * 
- * @return the error code for find_dependency
+ * @return find_dependency_err_code
 */
-find_dependency_err_code_t libyangpush_find_import(struct lysp_import *imported_module, cdada_map_t *module_set);
+find_dependency_err_code_t libyangpush_load_module_direct_dependency_into_map_and_list(cdada_map_t *module_set, cdada_list_t *register_list, cdada_list_t *dependency_list, struct lys_module *module);
 
 /**
- * Find the include module for the passed in 'include_module'
- * the 'module_set' stores all modules concerned in a find_dependency.
- * the found module will call find_dependency. The process is recursive.
+ * This function load the submodule into module_set map, register list
+ * and its direct dependency list into module's module_info
  * 
- * @param include_module the sized array for all include module of one module
- * @param module_set the cdada map that stores all modules
+ * @param module_set the cdada map tha contains all modules concern in a dependency-search
+ * @param register_list the ordered list of module to be registered to schema registry
+ * @param dependency_list this list belongs to the current module. It should be put into module_info struct
+ * @param module the yang submodule struct of current module
  * 
- * @return the error code for find_dependency
+ * @return find_dependency_err_code
 */
-find_dependency_err_code_t libyangpush_find_include(struct lysp_include *include_module, cdada_map_t *module_set);
+find_dependency_err_code_t libyangpush_load_submodule_direct_dependency_into_map_and_list(cdada_map_t *module_set, cdada_list_t *register_list, cdada_list_t *dependency_list, struct lysp_submodule *module);
 
 /**
- * Find the reverse dependency modules(augment & deviate) for the passed in 'module'
- * the 'module_set' stores all modules concerned in a find_dependency call.
- * the found module will call find_dependency. The process is recursive.
+ * This function load the module into module_set map, register list(if it's not in module_set map yet)
+ * and its reverse dependency list into module's module_info
  * 
- * @param module the sized array for this reverse dependency module
- * @param module_set the cdada map that stores all modules
+ * @param module_set the cdada map tha contains all modules concern in a dependency-search
+ * @param register_list the ordered list of module to be registered to schema registry
+ * @param dependency_list this list belongs to the current module. It should be put into module_info struct
+ * @param module the yang module struct of current module
  * 
- * @return the error code for find_dependency
+ * @return find_dependency_err_code
 */
-find_dependency_err_code_t libyangpush_find_reverse_dep(struct lys_module **module, cdada_map_t *module_set);
+find_dependency_err_code_t libyangpush_load_module_reverse_dependency_into_map_and_list(cdada_map_t *module_set, cdada_list_t *register_list, cdada_list_t *dependency_list, struct lys_module *module);
+
+/**
+ * find the direct dependency(include, import) of a module, and store then into module_set,
+ * and register in the reg_list
+ * 
+ * @param module the module that we are finding dependency for
+ * @param module_set the cdada_map that contains all modules concern in a find-dependency
+ * @param reg_list the ordered list of module to be registered into schema registry
+ * 
+ * @return find_dependency_err_code
+*/
+find_dependency_err_code_t libyangpush_find_module_direct_dep(struct lys_module *module, cdada_map_t *module_set, cdada_list_t *reg_list);
+
+/**
+ * find the direct dependency(include, import) of a submodule, and store then into module_set,
+ * and register in the reg_list
+ * 
+ * @param module the submodule that we are finding dependency for
+ * @param module_set the cdada_map that contains all modules concern in a find-dependency
+ * @param reg_list the ordered list of module to be registered into schema registry
+ * 
+ * @return find_dependency_err_code
+*/
+find_dependency_err_code_t libyangpush_find_submodule_direct_dep(struct lysp_submodule *module, cdada_map_t *module_set, cdada_list_t *reg_list);
+
+/**
+ * find the reverse dependency(augment, deviate) of module, and store then into module_set,
+ * and register in the reg_list
+ * 
+ * @param module the module that we are finding dependency for
+ * @param module_set the cdada_map that contains all modules concern in a find-dependency
+ * @param reg_list the ordered list of module to be registered into schema registry
+ * 
+ * @return find_dependency_err_code
+*/
+find_dependency_err_code_t libyangpush_find_module_reverse_dep(struct lys_module *module, cdada_map_t *module_set, cdada_list_t *reg_list);
+
+/**
+ * the top level function for find all dependency(import, include, augment, deviate)
+ * 
+ * @param module the module that we are finding dependency for
+ * @param module_set the cdada_map that contains all modules concern in a find-dependency
+ * @param reg_list the ordered list of module to be registered into schema registry
+ * 
+ * @return find_dependency_err_code
+*/
+find_dependency_err_code_t libyangpush_find_all_dependency(struct lys_module *module, cdada_map_t *module_set, cdada_list_t *reg_list);
+
+/**
+ * Parse the datastore_xpath_filter to find out the filter(namespace or module name),
+ * and store it in the subscription_filter cdada_map.
+ * 
+ * @param datastore_xpath_filter the xml xpath_filter node that needs to be parsed
+ * @param sub_id the subscription id that is gping to be used as the index for filter in the 'subscription_filter' cdada map
+ * @param subscription_filter the cdada mpa used to store the filter information the value is a pointer to 'struct subscription_filter_info'
+*/
+void libyangpush_generate_subscription_info_with_xpath_filter(xmlNodePtr datastore_xpath_filter, 
+            int sub_id, cdada_map_t *subscription_filter);
+
+/**
+ * Parse the datastore_subtree_filter to find out the filter(result can only be 
+ * namesapce), and store it in the subscription_filter cdada_map.
+ * 
+ * @param datastore_xpath_filter the xml xpath_filter node that needs to be parsed
+ * @param sub_id the subscription id that is gping to be used as the index for filter in the 'subscription_filter' cdada map
+ * @param subscription_filter the cdada mpa used to store the filter information the value is a pointer to 'struct subscription_filter_info'
+*/
+void libyangpush_generate_subscription_info_with_subtree_filter(xmlNodePtr datastore_subtree_filter, 
+            int sub_id, cdada_map_t *subscription_filter);
+
+/**
+ * This function parse the list of subscription in the xml YANG push message.
+ * The parsed subscription will be store in 'struct subscription_filter_info'
+ * that contains the subscription filter, filter type, subscription id, numbers
+ * of filter. All subscriptions will be parsed and pointers are stored in a 
+ * cdada map with index being the subscription id of them. 
+ * 
+ * @param subscriptions the xml subscriptions node that pointes to be subscription list that needs to be parsed
+ * @param subscription_filter the cdada mpa used to store the filter information the value is a pointer to 'struct subscription_filter_info'
+*/
+void libyangpush_parse_subscription_filter(xmlNodePtr subscriptions, cdada_map_t *subscription_filter);

@@ -1,0 +1,1 @@
+{"schemaType": "YANG", "references": [], "schema": "module str-type {\n  yang-version 1.1;\n  namespace \"urn:example:yang:str-type\";\n  prefix str;\n\n  typedef int-string {\n    type string {\n      pattern \"[0-9]+\";\n    }\n  }\n}\n"}

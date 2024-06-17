@@ -1,0 +1,1 @@
+{"schemaType": "YANG", "references": [], "schema": "module e-module {\n  yang-version 1.1;\n  namespace \"urn:example:yang:e-module\";\n  prefix e;\n\n  revision 2023-06-13;\n\n  typedef e-enum {\n    type enumeration {\n      enum \"zero\";\n    }\n  }\n\n  grouping some-groups {\n    leaf e-leaf {\n      type e-enum;\n    }\n  }\n}\n"}

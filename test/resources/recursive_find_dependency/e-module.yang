@@ -1,0 +1,19 @@
+module e-module {
+  yang-version 1.1;
+  namespace "urn:example:yang:e-module";
+  prefix e;
+
+  revision 2023-06-13;
+
+  typedef e-enum {
+    type enumeration {
+      enum "zero";
+    }
+  }
+
+  grouping some-groups {
+    leaf e-leaf {
+      type e-enum;
+    }
+  }
+}

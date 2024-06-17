@@ -1,0 +1,11 @@
+module str-type {
+  yang-version 1.1;
+  namespace "urn:example:yang:str-type";
+  prefix str;
+
+  typedef int-string {
+    type string {
+      pattern "[0-9]+";
+    }
+  }
+}

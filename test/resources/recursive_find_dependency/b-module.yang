@@ -3,6 +3,11 @@ module b-module {
   namespace "urn:example:yang:b-module";
   prefix b;
 
+  import e-module {
+    prefix e;
+    revision-date 2023-06-13;
+  }
+
   revision 2023-06-13;
 
   typedef myenum {
@@ -17,5 +22,9 @@ module b-module {
     }
     description
       "test";
+  }
+
+  grouping some-other-groups {
+    uses e:some-groups;
   }
 }

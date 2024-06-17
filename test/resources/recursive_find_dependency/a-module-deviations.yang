@@ -1,0 +1,26 @@
+module a-module-deviations {
+  yang-version 1.1;
+  namespace "urn:example:deviations";
+  prefix amd;
+
+  import a-module {
+    prefix a;
+  }
+  import str-type {
+    prefix str;
+  }
+
+
+  include "a-deviate-include";
+
+  deviation "/a:something/a:a-enum" {
+    deviate replace {
+      type a-deviate-include-enum;
+    }
+  }
+  deviation "/a:something/a:str-value" {
+    deviate replace {
+      type str:int-string;
+    }
+  }
+}

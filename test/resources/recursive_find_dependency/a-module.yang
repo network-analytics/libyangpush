@@ -8,12 +8,23 @@ module a-module {
     revision-date 2023-06-13;
   }
 
+
+  include "c-module";
+
   container a {
     leaf x {
-      type b:myenum;
+      type b:bar;
     }
   }
   container something {
-    uses b:somegroup;
+    uses b:some-other-groups;
+    leaf str-value {
+      type string;
+    }
+    leaf a-enum {
+      type enumeration {
+        enum "one";
+      }
+    }
   }
 }

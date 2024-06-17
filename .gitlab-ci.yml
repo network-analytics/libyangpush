@@ -4,7 +4,7 @@ stages:
     - functional-test
 
 image:
-  name: registry-eu.inhuawei.com:5050/libyangpush-ci:v1.4.0
+  name: registry-eu.inhuawei.com:5050/libyangpush-ci:v1.6.0
 
 build:
   stage: build
@@ -23,6 +23,10 @@ unit-test:
     - meson setup build
     - cd build
     - meson test
+  artifacts:
+    when: on_failure
+    paths:
+      - build/meson-logs/testlog.txt
 
 functional-test:
   stage: functional-test

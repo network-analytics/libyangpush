@@ -1,0 +1,1 @@
+{"schemaType": "YANG", "references": [], "schema": "submodule a-deviate-include {\nyang-version 1.1;\nbelongs-to a-module-deviations {\nprefix amd;\n}\ntypedef a-deviate-include-enum {\ntype enumeration {\nenum \"zero\";\n}\n}\n}\n"}

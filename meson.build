@@ -3,21 +3,16 @@ project(
     'c',
     version : '0.1',
     default_options: [
-      'c_std=c99'
+      'c_std=c99',
+      'warning_level=3'
     ]
 )
 cc = meson.get_compiler('c')
-
 project_description = 'libyangpush'
 
-if meson.get_compiler('c').has_multi_arguments('-Wall', '-Wextra', '-pedantic', '-Werror')
-    add_project_arguments('-Wall', language : ['c'])
-    add_project_arguments('-Wextra', language : ['c'])
-    add_project_arguments('-pedantic', language : ['c'])
-endif
-
 project_headers = [
-  'src/libyangpush.h'
+  'src/libyangpush.h',
+  'src/tool.h'
 ]
 
 project_source_files = [
@@ -33,16 +28,22 @@ project_test_files = [
 
 public_headers = include_directories('src')
 
-libyang_dep = cc.find_library('libyang', 
+libyang_dep = cc.find_library('yang', 
   dirs: ['/usr/local/lib']
 )
 
-libcdada_dep = cc.find_library('libcdada', 
+libcdada_dep = cc.find_library('cdada', 
+  dirs: ['/usr/local/lib']
+)
+
+libcurl_dep = cc.find_library('curl', 
   dirs: ['/usr/local/lib']
 )
 
 project_dependencies = [
     dependency('LibXml2'),
+    dependency('jansson'),
+    libcurl_dep,
     libyang_dep,
     libcdada_dep,
 ]
@@ -92,7 +93,7 @@ test('test_tool',
   executable(
     'test_tool',
     files('test/test_tool.c'),
-    dependencies: [project_dep, test_dep],
+    dependencies: [project_dependencies, project_dep, test_dep],
     install: false
   )
 )
@@ -110,6 +111,15 @@ test('test_find_dependency',
   executable(
     'test_find_dependency',
     files('test/test_find_dependency.c'),
+    dependencies: [project_dependencies, project_dep, test_dep],
+    install: false
+  )
+)
+
+test('test_schema_registration',
+  executable(
+    'test_schema_registration',
+    files('test/test_schema_registration.c'),
     dependencies: [project_dependencies, project_dep, test_dep],
     install: false
   )
