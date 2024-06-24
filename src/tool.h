@@ -51,7 +51,26 @@ void trav_copy_list(const cdada_map_t* traversed_list, const void* key, void* us
  * @param node the xml node pointer pointing to the root node that we are searching in
  * @param elem_name the key name that we are searching for
 */
-xmlNodePtr xml_find_node(xmlNodePtr node, char* elem_name);
+xmlNodePtr xml_find_node(xmlNodePtr node, const char* elem_name);
+
+/**
+ * Look for node with a specific key value within a list of nodes. return NULL is not found, return the node pointer if founded
+ * @param node the first node of the node list we are searching throught
+ * @param keyname the wanted name of the element(key) under the current node
+ * @param value the wanted value of the wanted element(key)
+ * @retur n 
+ */
+xmlNodePtr xml_find_node_by_keyval(xmlNodePtr node, const char* keyname, const char* value);
+
+/**
+ * Parse yang-lib message content and return the list of element under the node with specified node name
+ * @param yanglib_msg the string message of yanglib, in xml format 
+ * @param module_name the name of the module node we are searching for
+ * @param element_name the element name of the node we are searching for
+ *
+ * @return cdada_list_t 
+*/
+cdada_list_t* parse_yanglib_msg(const char *yanglib_msg, const char *module_name, const char *element_name);
 
 /**
  * The function for validating the YANG push notification message structure

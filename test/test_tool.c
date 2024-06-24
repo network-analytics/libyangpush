@@ -130,11 +130,44 @@ static void test_validate_message_structure(void** state){
     xmlFreeNode(test2_datastore);
 }
 
+
+static void test_create_yanglib_element_list(void **state)
+{
+    (void) state;
+    char text1[1000] = 
+    "<yang-library xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-library\">"
+      "<module>"
+        "<name>ietf-interfaces</name>"
+        "<revision>2018-02-20</revision>"
+        "<namespace>urn:ietf:params:xml:ns:yang:ietf-interfaces</namespace>"
+        "<location>file:///opt/dev/sysrepo/build/repository/yang/ietf-interfaces@2018-02-20.yang</location>"
+        "<augmented-by xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-library-augmentedby\">ietf-ip</augmented-by>"
+        "<augmented-by xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-library-augmentedby\">ietf-network-instance</augmented-by>"
+      "</module>"
+      "<module>"
+        "<name>ietf-yang-library</name>"
+        "<revision>2019-01-04</revision>"
+        "<namespace>urn:ietf:params:xml:ns:yang:ietf-yang-library</namespace>"
+        "<location>file:///opt/dev/sysrepo/build/repository/yang/ietf-yang-library@2019-01-04.yang</location>"
+        "<augmented-by xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-library-augmentedby\">ietf-yang-library-augmentedby</augmented-by>"
+      "</module>"
+    "</yang-library>";
+    
+    cdada_list_t* yanglib_list = parse_yanglib_msg(text1, "ietf-interfaces", "augmented-by");
+    char *val = NULL;
+    cdada_list_get(yanglib_list, 1, val);
+    printf(val);
+    printf("\n");
+    // printf("list position 0: %s\n", (char*)(*val)); 
+}
+
+
 int main(void){
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_djb2),
         cmocka_unit_test(test_find_node),
-        cmocka_unit_test(test_validate_message_structure)
+        cmocka_unit_test(test_validate_message_structure),
+        cmocka_unit_test(test_create_yanglib_element_list)
     };
     
     return cmocka_run_group_tests(tests, NULL, NULL);
