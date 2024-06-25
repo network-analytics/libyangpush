@@ -130,6 +130,17 @@ static void test_validate_message_structure(void** state){
     xmlFreeNode(test2_datastore);
 }
 
+void element_list_clear_trav(const cdada_list_t *list, const void* k, void* opaque) 
+{
+ 	char* key = (char*)*(void**)k;
+    free(key);
+} 
+
+void element_list_print_trav(const cdada_list_t *list, const void* k, void* opaque) 
+{
+ 	char* key = (char*)*(void**)k;
+    printf("\nkey is: %s \n", key); 
+}
 
 static void test_create_yanglib_element_list(void **state)
 {
@@ -154,11 +165,12 @@ static void test_create_yanglib_element_list(void **state)
     "</yang-library>";
     
     cdada_list_t* yanglib_list = parse_yanglib_msg(text1, "ietf-interfaces", "augmented-by");
-    char *val = NULL;
-    cdada_list_get(yanglib_list, 1, val);
-    printf(val);
-    printf("\n");
-    // printf("list position 0: %s\n", (char*)(*val)); 
+    cdada_list_print(yanglib_list, stdout);
+    cdada_list_traverse(yanglib_list, &element_list_print_trav, NULL);
+
+    /* Garbage collector */
+    cdada_list_traverse(yanglib_list, &element_list_clear_trav, NULL); 
+    cdada_list_destroy(yanglib_list);
 }
 
 

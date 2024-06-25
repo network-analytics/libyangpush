@@ -95,34 +95,34 @@ xmlNodePtr xml_find_node(xmlNodePtr node, const char* elem_name)
 /* Look for node with a specific element value within a list of nodes */
 xmlNodePtr xml_find_node_by_keyval(xmlNodePtr node, const char* keyname, const char* value)
 {
-    xmlNodePtr childnode = xml_find_node(node, keyname);    
-    while(strcmp((char*)xmlNodeGetContent(childnode), value) != 0) { // Check if the value match
+    xmlNodePtr childnode = xml_find_node(node, keyname);
+    char *child_content = (char*)xmlNodeGetContent(childnode);
+    while(strcmp((char*)child_content, value) != 0) { // Check if the value match
         if(node == NULL)
             return NULL;
+        free(child_content);
         childnode = xml_find_node(node, "name");
+        child_content = (char*)xmlNodeGetContent(childnode);
         if(childnode == NULL)
             return NULL;
         node = node->next;
     }
+    free(child_content);
     return node;
 }
 
 
-cdada_list_t* parse_yanglib_msg_element_list(xmlNodePtr element_node) 
+cdada_list_t* parse_yanglib_msg_element_list(xmlNodePtr element_node, cdada_list_t* element_val_list) 
 {
     if(element_node == NULL) { 
 #if debug
         fprintf(stderr, "%s", "[parse_yanglib_msg_element_list]Invalid input parameter\n");
 #endif
     } 
-    cdada_list_t *element_val_list = cdada_list_create(sizeof(char*));
-    int num_of_element = xmlChildElementCount(element_node->parent);
-
-    char* element_val = (char*)calloc(strlen((char*)xmlNodeGetContent(element_node))+1, sizeof(char));
-    strncpy(element_val, (char*)xmlNodeGetContent(element_node), strlen((char*)xmlNodeGetContent(element_node)));
-
+    
+    char* element_val = (char*)xmlNodeGetContent(element_node);
     printf("stash into queue: %s\n", element_val);
-    cdada_list_push_back(element_val_list, element_val);
+    printf("push into cdada %d", cdada_list_push_back(element_val_list, &element_val));
 
     return element_val_list;
 }
@@ -150,15 +150,10 @@ cdada_list_t* parse_yanglib_msg(const char *yanglib_msg, const char *module_name
 
         if(module_node != NULL) {
             module_node = xml_find_node_by_keyval(module_node, "name", module_name);
-#if debug
-            printf("\nnode content: %s\n", xmlNodeGetContent(xml_find_node(module_node, "name")));
-#endif
             element_node = xml_find_node(module_node, (const char*)element_name); // Find the element node with specific name
+            element_list = cdada_list_create(sizeof(void*));
             while(element_node != NULL) { // Element node Processing
-                element_list = parse_yanglib_msg_element_list(element_node);
-#if debug
-                printf("\nelement_node: %s\n", xmlNodeGetContent(element_node));
-#endif
+                parse_yanglib_msg_element_list(element_node, element_list);
                 element_node = element_node->next; 
                 element_node = xml_find_node(element_node, element_name); // Find the next element node
 
