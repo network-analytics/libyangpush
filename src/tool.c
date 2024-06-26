@@ -100,12 +100,12 @@ xmlNodePtr xml_find_node_by_keyval(xmlNodePtr node, const char* keyname, const c
     while(strcmp((char*)child_content, value) != 0) { // Check if the value match
         if(node == NULL)
             return NULL;
-        free(child_content);
-        childnode = xml_find_node(node, "name");
-        child_content = (char*)xmlNodeGetContent(childnode);
         if(childnode == NULL)
             return NULL;
+        free(child_content);
         node = node->next;
+        childnode = xml_find_node(node, "name");
+        child_content = (char*)xmlNodeGetContent(childnode);
     }
     free(child_content);
     return node;
@@ -121,15 +121,13 @@ cdada_list_t* parse_yanglib_msg_element_list(xmlNodePtr element_node, cdada_list
     } 
     
     char* element_val = (char*)xmlNodeGetContent(element_node);
-    printf("stash into queue: %s\n", element_val);
-    printf("push into cdada %d", cdada_list_push_back(element_val_list, &element_val));
+    cdada_list_push_back(element_val_list, &element_val);
 
     return element_val_list;
 }
 
 cdada_list_t* parse_yanglib_msg(const char *yanglib_msg, const char *module_name, const char *element_name)
 {
-    printf("%s/n", yanglib_msg);
     if(yanglib_msg == NULL || module_name ==NULL || element_name == NULL )
     {
 #if debug

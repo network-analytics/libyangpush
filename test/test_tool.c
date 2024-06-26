@@ -132,14 +132,25 @@ static void test_validate_message_structure(void** state){
 
 void element_list_clear_trav(const cdada_list_t *list, const void* k, void* opaque) 
 {
+    (void)list;
+    (void)opaque;
  	char* key = (char*)*(void**)k;
     free(key);
 } 
 
 void element_list_print_trav(const cdada_list_t *list, const void* k, void* opaque) 
 {
+    (void)list;
+    (void)opaque;
  	char* key = (char*)*(void**)k;
     printf("\nkey is: %s \n", key); 
+}
+
+void assert_module_position_in_list(cdada_list_t *yanglib_list, int position, char *expect_val) 
+{
+    void *element_val;
+    cdada_list_get(yanglib_list, position, &element_val);
+    assert_string_equal((char*)element_val, expect_val);
 }
 
 static void test_create_yanglib_element_list(void **state)
@@ -163,14 +174,39 @@ static void test_create_yanglib_element_list(void **state)
         "<augmented-by xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-library-augmentedby\">ietf-yang-library-augmentedby</augmented-by>"
       "</module>"
     "</yang-library>";
+
+    char text2[300] =
+    "<yang-library xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-library\">"
+        "<foo/>"
+    "</yang-library>";
     
-    cdada_list_t* yanglib_list = parse_yanglib_msg(text1, "ietf-interfaces", "augmented-by");
-    cdada_list_print(yanglib_list, stdout);
-    cdada_list_traverse(yanglib_list, &element_list_print_trav, NULL);
+    /* text1 test */
+    /* find augmentedby nodes */
+    cdada_list_t* text1_ietf_interfaces_augmentedby_list = parse_yanglib_msg(text1, "ietf-interfaces", "augmented-by");
+    assert_int_equal(cdada_list_size(text1_ietf_interfaces_augmentedby_list), 2);
+    assert_module_position_in_list(text1_ietf_interfaces_augmentedby_list, 0, "ietf-ip");
+    assert_module_position_in_list(text1_ietf_interfaces_augmentedby_list, 1, "ietf-network-instance");
+    cdada_list_t* text1_ietf_yang_library_augmentedby_list = parse_yanglib_msg(text1, "ietf-yang-library", "augmented-by");
+    assert_int_equal(cdada_list_size(text1_ietf_yang_library_augmentedby_list), 1);
+    assert_module_position_in_list(text1_ietf_yang_library_augmentedby_list, 0, "ietf-yang-library-augmentedby");
+    /* find revision node */
+    cdada_list_t* text1_ietf_yang_library_revision_list = parse_yanglib_msg(text1, "ietf-yang-library", "revision");
+    assert_int_equal(cdada_list_size(text1_ietf_yang_library_revision_list), 1);
+    assert_module_position_in_list(text1_ietf_yang_library_revision_list, 0, "2019-01-04");
+
+
+    /* text2 */ 
+    cdada_list_t* text2_yanglib_list = parse_yanglib_msg(text2, "ietf-yang-library", "augmentedby");
+    assert_null(text2_yanglib_list);
+
 
     /* Garbage collector */
-    cdada_list_traverse(yanglib_list, &element_list_clear_trav, NULL); 
-    cdada_list_destroy(yanglib_list);
+    cdada_list_traverse(text1_ietf_interfaces_augmentedby_list, &element_list_clear_trav, NULL); 
+    cdada_list_destroy(text1_ietf_interfaces_augmentedby_list);
+    cdada_list_traverse(text1_ietf_yang_library_augmentedby_list, &element_list_clear_trav, NULL); 
+    cdada_list_destroy(text1_ietf_yang_library_augmentedby_list);
+    cdada_list_traverse(text1_ietf_yang_library_revision_list, &element_list_clear_trav, NULL); 
+    cdada_list_destroy(text1_ietf_yang_library_revision_list);
 }
 
 
