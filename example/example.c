@@ -44,6 +44,114 @@ int connect_netconf(struct ly_ctx **ctx, struct nc_session **session)
     return rc;
 }
 
+/* return 0 if sucessfully sent, otherwise 1*/
+int receive_rpc(struct nc_session *session, struct lyd_node **envp, struct lyd_node **op, 
+        int msg_id, NC_RPC_TYPE rpc_type, struct nc_rpc *rpc, signed int timeout){
+    int r = 0, rc = 0;
+
+    /* receive the server's reply with the expected message ID
+     * as separate rpc-reply NETCONF envelopes and the parsed YANG output itself, if any */
+    r = nc_recv_reply(session, rpc, msg_id, timeout, envp, op);
+
+    switch(r){
+        case NC_MSG_REPLY:
+#ifdef debug
+            printf("[RECEIVE_RPC]success\n");
+#endif
+            break;
+        case NC_MSG_WOULDBLOCK:
+#ifdef debug
+            printf("[RECEIVE_RPC]Timeout elapsed\n");
+#endif
+            break;
+        case NC_MSG_ERROR:
+#ifdef debug
+            printf("[RECEIVE_RPC]Reading fail\n");
+#endif
+            break;
+        case NC_MSG_NOTIF:
+#ifdef debug
+            printf("[RECEIVE_RPC]Notifications msg is read, call nc_recv_notif() instead to get the notif\n");
+#endif
+            r = nc_recv_notif(session, timeout, envp, op);
+            if (r == 0) {
+                return 0;
+            }
+            break;
+        case NC_MSG_REPLY_ERR_MSGID:
+#ifdef debug
+            printf("[RECEIVE_RPC]Reply with missing or wrong msg-id\n");
+#endif
+            return 0;
+            break;
+        default:
+            break;
+    }
+    cleanup:
+    return rc;
+}
+
+int generate_get_yanglib_rpc(int msg_id, char *module_name, struct nc_session *session, struct nc_rpc **rpc) {
+    char get_xpath[100];
+    int rc = 0;
+
+    sprintf(get_xpath, "/ietf-yang-library:yang-library/module-set/module[name='%s']/*", module_name);
+    printf("xpath: %s\n", get_xpath);
+    *rpc = nc_rpc_get(get_xpath, NC_WD_UNKNOWN, NC_PARAMTYPE_CONST);
+
+    /* if the rpc is successfully generated */
+    if (!*rpc) {
+        return 0;
+    }
+
+    /* send the RPC on the session and remember NETCONF message ID */
+    rc = nc_send_rpc(session, *rpc, 100, &msg_id);
+    if (rc != NC_MSG_RPC) {
+        return 0;
+    }
+
+    return msg_id;
+}
+
+/* Send the get-schema request */
+char* send_and_receive_rpc(struct nc_session *session, char* module_name){
+    int msg_id = 0, rc = 0, r= 0 ;
+    struct nc_rpc *rpc = NULL;
+    struct lyd_node *envp = NULL, *op;
+    char* reply = NULL;
+
+    //send get-schema rpc
+    msg_id = generate_get_yanglib_rpc(msg_id, module_name, session, &rpc);
+    if(!rpc)
+        printf("rpc incorrect");
+
+    //receive the reply from netconf server
+    rc = receive_rpc(session, &envp, &op, msg_id, NC_RPC_GET, rpc, 1000);
+
+    if (!op) {
+        r = lyd_print_file(stdout, envp, LYD_XML, 0);
+        r = lyd_print_mem(&reply, envp, LYD_XML, 0);
+    } else {
+        r = lyd_print_file(stdout, op, LYD_XML, 0);
+        r = lyd_print_mem(&reply, op, LYD_XML, 0);
+        if (r) {
+            return 0;
+        }
+        r = lyd_print_file(stdout, envp, LYD_XML, 0);
+        r = lyd_print_mem(&reply, op, LYD_XML, 0);
+    }
+
+    if(rc == 1)
+        goto cleanup;
+        
+    cleanup:
+    lyd_free_all(envp);
+    lyd_free_all(op);
+    nc_rpc_free(rpc);
+    return reply;
+}
+
+
 void trav_create_schema(const cdada_map_t* traversed_map, const void* key, void* val, void* user_define_data)
 {
     (void) key;
@@ -96,18 +204,36 @@ int main()
     xmlNodePtr subscription_list_ptr;
     int sub_id;
 
-    if (validate_message_structure((void*)msg, &subscription_list_ptr, &sub_id) == MESSAGE_STRUCTURE_INVALID) {
+    // if (validate_message_structure((void*)msg, &subscription_list_ptr, &sub_id) == MESSAGE_STRUCTURE_INVALID) {
+        // exit(1);
+    // }
+
+    if (validate_subscription_started_structure((void*)msg, &subscription_list_ptr, &sub_id) == MESSAGE_STRUCTURE_INVALID) {
         exit(1);
     }
+    printf("after parsing %s\n",xmlNodeGetContent((subscription_list_ptr)));
 
-    cdada_map_t *subscription_filters = cdada_map_create(int);
-    libyangpush_parse_subscription_filter(subscription_list_ptr, subscription_filters);
-    if (cdada_map_empty(subscription_filters) != 1) {
-        cdada_map_traverse(subscription_filters, trav_create_schema, module_context);
-    }
-    cdada_map_traverse(subscription_filters, libyangpush_trav_clear_subscription_filter_map, NULL);
-    cdada_map_destroy(subscription_filters);
+    char *filter = NULL;
+    libyangpush_parse_xpath(subscription_list_ptr, &filter);
+#ifdef DEBUG
+    printf("filter %s\n", filter);
+#endif
+    struct lys_module* subscribed_module = ly_ctx_get_module(module_context, filter, NULL);
+    char* yanglib = send_and_receive_rpc(session, filter);
+#ifdef DEBUG
+    printf("yanglib \n %s\n", yanglib);
+#endif
+
+    cdada_list_t *augmentation_list = parse_yanglib_msg(yanglib, filter, "augmented-by");
+    cdada_list_t *deviation_list = parse_yanglib_msg(yanglib, filter, "deviations");
+
+    printf("augmentation list size %d\n", cdada_list_size(augmentation_list));
+    printf("deviation list size %d\n", cdada_list_size(deviation_list));
+
+cleanup:
     free(msg);
+    free(filter);
+    free(yanglib);
     xmlFreeNodeList(subscription_list_ptr);
     ly_ctx_destroy(module_context);
     nc_session_free(session, NULL);

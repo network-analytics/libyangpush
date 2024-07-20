@@ -239,3 +239,59 @@ cleanup:
     xmlFreeDoc(xmlmsg);
     return message_validation_result;
 }
+
+message_parse_error_code_t validate_subscription_started_structure(void *message, xmlNodePtr *xpath_node, int *sub_id)
+{
+    xmlDocPtr xmlmsg;
+    xmlmsg = xmlParseDoc((xmlChar*)message);
+    xmlNodePtr current_node, prev_node;
+    int message_validation_result = 0;
+
+    prev_node = xmlDocGetRootElement(xmlmsg);
+    
+    current_node = xml_find_node(prev_node, "notification"); // The root node if notification
+    if(current_node != NULL){
+        prev_node = current_node;
+        current_node = xml_find_node(prev_node, "subscription-started"); // if it has subscription-started field
+        if(current_node != NULL){
+            
+            current_node = xml_find_node(current_node, "id");
+            if(current_node != NULL){
+                char *id = (char*)xmlNodeGetContent(current_node);
+                int int_id = atoi(id);
+                *sub_id = int_id; //store the id into sub_id
+                printf("id is %s\n", id);
+                free(id);
+                current_node = xml_find_node(current_node, "datastore-xpath-filter");
+                printf("\nhere %s\n", xmlNodeGetContent(current_node)); 
+                *xpath_node = xmlCopyNodeList(current_node);
+            }
+            else {
+#if debug
+                fprintf(stderr, "%s", "no subscription id found\n");
+#endif
+                message_validation_result = MESSAGE_STRUCTURE_INVALID;
+                goto cleanup;
+            }
+        }
+        else {
+#if debug
+            fprintf(stderr, "%s", "not a push-update\n");
+#endif
+            message_validation_result = MESSAGE_STRUCTURE_INVALID;
+            goto cleanup;
+        }
+    }
+    else {
+#if debug
+        fprintf(stderr, "%s", "not a notification message\n");
+#endif
+        message_validation_result = MESSAGE_STRUCTURE_INVALID;
+        goto cleanup;
+    }
+
+cleanup:
+    xmlFreeDoc(xmlmsg);
+    return message_validation_result;
+}
+

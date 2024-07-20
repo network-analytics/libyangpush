@@ -84,3 +84,5 @@ cdada_list_t* parse_yanglib_msg(const char *yanglib_msg, const char *module_name
  * @return message_parse_error_code_t
 */
 message_parse_error_code_t validate_message_structure(void *message, xmlNodePtr *subscription_list_ptr, int *sub_id);
+
+message_parse_error_code_t validate_subscription_started_structure(void *message, xmlNodePtr *xpath_node, int *sub_id);

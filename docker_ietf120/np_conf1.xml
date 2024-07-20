@@ -1,0 +1,10 @@
+<establish-subscription xmlns="urn:ietf:params:xml:ns:yang:ietf-subscribed-notifications">
+    <datastore xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push"
+               xmlns:ds="urn:ietf:params:xml:ns:yang:ietf-datastores">ds:running</datastore>
+    <datastore-subtree-filter xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push">
+      <if:interfaces xmlns:if="urn:ietf:params:xml:ns:yang:ietf-interfaces">
+        <if:interface/>
+      </if:interfaces>
+    </datastore-subtree-filter>
+    <on-change xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push"/>
+</establish-subscription>

@@ -9,14 +9,17 @@
 #define YANG_MODULE_CONTEXT_SEARCH_PATH "../modules"
 
 #define SSH_ADDRESS "127.0.0.1"
-#define SSH_PORT 8830
+#define SSH_PORT 830
 
 /* SSH 'password' authentication */
 #define SSH_USERNAME "root"
 #define SSH_PASSWORD "admin"
 
 /* SSH 'public key' authentication */
-#define SSH_PUBLIC_KEY "~/.ssh/id_rsa.pub"
-#define SSH_PRIVATE_KEY "~/.ssh/id_rsa"
+#define SSH_PUBLIC_KEY "/root/.ssh/id_rsa.pub"
+#define SSH_PRIVATE_KEY "/root/.ssh/id_rsa"
 
-#define PATH_TO_EXAMPLE_MESSAGE "../../resources/push-update.xml"
+// #define PATH_TO_EXAMPLE_MESSAGE "../../resources/push-update.xml"
+#define PATH_TO_EXAMPLE_MESSAGE "../../resources/subscription-started.xml"
+
+#define DEBUG 1

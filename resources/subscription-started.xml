@@ -1,0 +1,22 @@
+<notification xmlns="urn:ietf:params:xml:ns:netconf:notification:1.0">
+  <eventTime>2022-09-02T10:59:55.32Z</eventTime>
+  <sysName xmlns="urn:ietf:params:xml:ns:yang:ietf-notification-sequencing">example-router</sysName>
+  <sequenceNumber xmlns="urn:ietf:params:xml:ns:yang:ietf-notification-sequencing">187653</sequenceNumber>
+  <subscription-started xmlns="urn:ietf:params:xml:ns:yang:ietf-subscribed-notifications">
+    <id>2222</id>
+    <datastore xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push"
+      xmlns:ds="urn:ietf:params:xml:ns:yang:ietf-datastores">ds:operational</datastore>
+    <datastore-xpath-filter xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push"
+      xmlns:sn="urn:ietf:params:xml:ns:yang:ietf-subscribed-notifications">/ietf-interfaces:interfaces</datastore-xpath-filter>
+    <module-version xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push-revision">
+      <module-name>ietf-interfaces</module-name>
+      <revision>2014-05-08</revision>
+      <revision-label/>
+    </module-version> 
+    <transport>ietf-udp-notif-transport:udp-notif</transport>  
+    <encoding>encode-json</encoding>
+    <periodic xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push">
+        <period xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push">100</period>
+    </periodic>
+  </subscription-started>
+</notification>

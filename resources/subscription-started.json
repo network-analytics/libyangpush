@@ -1,0 +1,21 @@
+{
+    "ietf-notification:notification": {
+      "eventTime": "2023-03-25T08:30:11.22Z",
+      "ietf-notification-sequencing:sysName": "example-router",
+      "ietf-notification-sequencing:sequenceNumber": 1,
+      "ietf-subscribed-notification:subscription-started": {
+        "id": 6666,
+        "ietf-yang-push:datastore": "ietf-datastores:operational",
+        "ietf-yang-push:datastore-xpath-filter": "/if:interfaces",
+        "ietf-yang-push-revision:revision": "2014-05-08",
+        "ietf-yang-push-revision:module-name": "ietf-interfaces",
+        "ietf-yang-push-revision:revision-label": "",
+        "ietf-distributed-notif:message-observation-domain-id": [1,2],
+        "transport": "ietf-udp-notif-transport:udp-notif",
+        "encoding": "encode-json",
+        "ietf-yang-push:periodic": {
+          "ietf-yang-push:period": 100
+        }
+      }
+    }
+  }

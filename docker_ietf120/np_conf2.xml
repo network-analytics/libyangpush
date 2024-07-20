@@ -1,0 +1,6 @@
+<establish-subscription xmlns="urn:ietf:params:xml:ns:yang:ietf-subscribed-notifications">
+    <datastore xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push"
+               xmlns:ds="urn:ietf:params:xml:ns:yang:ietf-datastores">ds:running</datastore>
+    <datastore-xpath-filter xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push">/ietf-interfaces/interfaces/interface</datastore-xpath-filter>
+    <on-change xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push"/>
+</establish-subscription>
