@@ -55,7 +55,7 @@ RUN git clone --depth 1 --branch pcre2-10.42 https://github.com/PCRE2Project/pcr
 RUN cd pcre2 && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON .. && make install
 
 # Install xz-utils@5.4.3 (libxml2 dep)
-RUN git clone --depth 1 --branch v5.4.3 https://git.tukaani.org/xz.git xz-utils
+RUN git clone --depth 1 --branch v5.4.3 https://github.com/tukaani-project/xz xz-utils
 RUN cd xz-utils && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON .. && make install
 
 # Install libxml2@2.11.4
