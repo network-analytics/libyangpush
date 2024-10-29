@@ -7,12 +7,6 @@ This Dockerfile is not yet complete and some configurations in bash need to be d
 ./build_docker_image.sh
 ```
 
-## configure openssl
-```
-cd openssl
-ldconfig /usr/local/lib64
-```
-
 ## Manually configuration for netopeer2
 ```
 cd netopeer2/scripts

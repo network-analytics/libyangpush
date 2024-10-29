@@ -186,6 +186,14 @@ void trav_create_schema(const cdada_map_t* traversed_map, const void* key, void*
     return;
 }
 
+void element_list_print_trav(const cdada_list_t *list, const void* k, void* opaque) 
+{
+    (void)list;
+    (void)opaque;
+ 	char* key = (char*)*(void**)k;
+    printf("%s \n", key); 
+}
+
 int main()
 {
     /* Connect to NETCONF server */
@@ -230,6 +238,8 @@ int main()
     printf("augmentation list size %d\n", cdada_list_size(augmentation_list));
     printf("deviation list size %d\n", cdada_list_size(deviation_list));
 
+    printf("augmented-by module:\n");
+    cdada_list_traverse(augmentation_list, &element_list_print_trav, NULL);
 cleanup:
     free(msg);
     free(filter);
