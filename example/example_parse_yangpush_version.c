@@ -22,7 +22,7 @@ char* load_file_from_disk(char *filename)
 int main()
 {
     /* Load example message */
-    char *msg = load_file_from_disk(PATH_TO_EXAMPLE_YANGLIB_MSG);
+    char *msg = load_file_from_disk(PATH_TO_EXAMPLE_MESSAGE);
     xmlNodePtr subscription_list_ptr;
     int sub_id;
 

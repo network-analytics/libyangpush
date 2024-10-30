@@ -20,7 +20,7 @@
 #define SSH_PRIVATE_KEY "/root/.ssh/id_rsa"
 
 // #define PATH_TO_EXAMPLE_MESSAGE "../../resources/push-update.xml"
-#define PATH_TO_EXAMPLE_MESSAGE "../../resources/subscription-started.xml"
+#define PATH_TO_EXAMPLE_MESSAGE "../../resources/subscription-started-new.xml"
 
 // PATH_TO_EXAMPLE_YANGLIB_MSG
 #define PATH_TO_EXAMPLE_YANGLIB_MSG "../../resources/get-yanglib.xml"
