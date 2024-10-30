@@ -22,6 +22,15 @@ char* load_file_from_disk(char *filename)
     return text;
 }
 
+void element_list_clear_trav(const cdada_list_t *list, const void* k, void* opaque) 
+{
+    (void)list;
+    (void)opaque;
+ 	char* key = (char*)*(void**)k;
+    free(key);
+} 
+
+
 int connect_netconf(struct ly_ctx **ctx, struct nc_session **session)
 {
     int rc = 0;
@@ -32,8 +41,8 @@ int connect_netconf(struct ly_ctx **ctx, struct nc_session **session)
         rc = 1;
         fprintf(stderr, "%s", "Couldn't set the SSH username\n");
     }
-    nc_client_ssh_add_keypair(SSH_PUBLIC_KEY, SSH_PRIVATE_KEY);
-    nc_client_ssh_set_auth_pref(NC_SSH_AUTH_PUBLICKEY, 4);
+    // nc_client_ssh_add_keypair(SSH_PUBLIC_KEY, SSH_PRIVATE_KEY);
+    nc_client_ssh_set_auth_pref(NC_SSH_AUTH_PASSWORD, 4);
 
     *session = nc_connect_ssh(SSH_ADDRESS, SSH_PORT, *ctx);
     if (!(*session)) {
@@ -133,17 +142,13 @@ char* send_and_receive_rpc(struct nc_session *session, char* module_name){
         r = lyd_print_mem(&reply, envp, LYD_XML, 0);
     } else {
         r = lyd_print_file(stdout, op, LYD_XML, 0);
-        r = lyd_print_mem(&reply, op, LYD_XML, 0);
         if (r) {
-            return 0;
+            goto cleanup;
         }
         r = lyd_print_file(stdout, envp, LYD_XML, 0);
         r = lyd_print_mem(&reply, op, LYD_XML, 0);
     }
 
-    if(rc == 1)
-        goto cleanup;
-        
     cleanup:
     lyd_free_all(envp);
     lyd_free_all(op);
@@ -177,7 +182,9 @@ void trav_create_schema(const cdada_map_t* traversed_map, const void* key, void*
         schema_info_ptr->version = "1";
         schema_info_ptr->module_set = module_set;
         cdada_list_rtraverse(reg_list, libyangpush_trav_list_register_schema, schema_info_ptr);
+#ifdef DEBUG
         printf("=>schema id %d\n", schema_info_ptr->schema_id);
+#endif
         cdada_map_traverse(module_set, libyangpush_trav_clear_module_set_map, NULL);
         cdada_map_destroy(module_set);
         cdada_list_destroy(reg_list);
@@ -212,14 +219,10 @@ int main()
     xmlNodePtr subscription_list_ptr;
     int sub_id;
 
-    // if (validate_message_structure((void*)msg, &subscription_list_ptr, &sub_id) == MESSAGE_STRUCTURE_INVALID) {
-        // exit(1);
-    // }
 
     if (validate_subscription_started_structure((void*)msg, &subscription_list_ptr, &sub_id) == MESSAGE_STRUCTURE_INVALID) {
         exit(1);
     }
-    printf("after parsing %s\n",xmlNodeGetContent((subscription_list_ptr)));
 
     char *filter = NULL;
     libyangpush_parse_xpath(subscription_list_ptr, &filter);
@@ -240,10 +243,15 @@ int main()
 
     printf("augmented-by module:\n");
     cdada_list_traverse(augmentation_list, &element_list_print_trav, NULL);
+
 cleanup:
     free(msg);
     free(filter);
     free(yanglib);
+    cdada_list_traverse(augmentation_list, &element_list_clear_trav, NULL); 
+    cdada_list_traverse(deviation_list, &element_list_clear_trav, NULL); 
+    cdada_list_destroy(augmentation_list);
+    cdada_list_destroy(deviation_list);
     xmlFreeNodeList(subscription_list_ptr);
     ly_ctx_destroy(module_context);
     nc_session_free(session, NULL);

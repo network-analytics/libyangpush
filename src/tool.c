@@ -87,7 +87,7 @@ xmlNodePtr xml_find_node(xmlNodePtr node, const char* elem_name)
             return result;
         }
             
-        node = node->next; 
+        node = xmlNextElementSibling(node); 
     }
     return NULL;
 }
@@ -103,8 +103,8 @@ xmlNodePtr xml_find_node_by_keyval(xmlNodePtr node, const char* keyname, const c
         if(childnode == NULL)
             return NULL;
         free(child_content);
-        node = node->next;
-        childnode = xml_find_node(node, "name");
+        node = xmlNextElementSibling(node);
+        childnode = xml_find_node(node, keyname);
         child_content = (char*)xmlNodeGetContent(childnode);
     }
     free(child_content);
@@ -148,14 +148,16 @@ cdada_list_t* parse_yanglib_msg(const char *yanglib_msg, const char *module_name
 
         if(module_node != NULL) {
             module_node = xml_find_node_by_keyval(module_node, "name", module_name);
-            element_node = xml_find_node(module_node, (const char*)element_name); // Find the element node with specific name
+            xmlNodePtr module_node_copy = xmlCopyNode(module_node, 1);
+            element_node = xml_find_node(module_node_copy, (const char*)element_name); // Find the element node with specific name
             element_list = cdada_list_create(sizeof(void*));
             while(element_node != NULL) { // Element node Processing
                 parse_yanglib_msg_element_list(element_node, element_list);
-                element_node = element_node->next; 
+                element_node = xmlNextElementSibling(element_node); 
                 element_node = xml_find_node(element_node, element_name); // Find the next element node
 
             }
+            xmlFreeNodeList(module_node_copy);
         }
         else {
 #if debug
@@ -171,6 +173,164 @@ cdada_list_t* parse_yanglib_msg(const char *yanglib_msg, const char *module_name
     xmlFreeDoc(yanglib_xmldoc);
     return element_list;
 }
+
+struct module_version* parse_yangpush_msg_model_revision(const char* message)
+{
+    if(message == NULL)
+    {
+#if debug
+        fprintf(stderr, "%s", "[parse_yangpush_msg_module_revision]Invalid input parameter\n");
+#endif
+        return NULL;
+    }
+
+    /* Initialization */
+    struct module_version *module_version = NULL;
+    xmlDocPtr yangpush_xmldoc = NULL;
+    xmlNodePtr yangpush_node = NULL, module_version_node = NULL, module_name_node = NULL, 
+                revision_node = NULL, revision_label_node = NULL;
+
+    yangpush_xmldoc = xmlParseDoc((xmlChar*)message); 
+    yangpush_node = xmlDocGetRootElement(yangpush_xmldoc);
+
+    module_version = (struct module_version*)malloc(sizeof(struct module_version));
+    if(yangpush_xmldoc != NULL) { 
+        module_version_node = xml_find_node(yangpush_node, "module-version"); // Find the module-version node
+        if (module_version_node!= NULL) {
+            module_name_node = xml_find_node(module_version_node, "module-name");
+            char *module_name = xmlNodeGetContent(module_name_node);
+
+            revision_node = xml_find_node(module_version_node, "revision");
+            char *revision = xmlNodeGetContent(revision_node);
+
+            revision_label_node = xml_find_node(module_version_node, "revision-label");
+            char *revision_label = xmlNodeGetContent(revision_label_node);
+
+            if (module_name != NULL && strlen(module_name) != 0) {
+                module_version->module_name = calloc((strlen(module_name)+1), sizeof(char));
+                strncpy(module_version->module_name, module_name, strlen((char*)module_name)+1);
+            }
+            else
+                module_version->module_name = NULL;
+
+            if (revision != NULL && strlen(revision) != 0){
+                module_version->revision = calloc((strlen(revision)+1), sizeof(char));
+                strncpy(module_version->revision, revision, strlen((char*)revision)+1);
+            }
+            else
+                module_version->revision = NULL;          
+
+            if (revision_label != NULL && strlen(revision_label)!=0) {
+                module_version->revision_label = calloc((strlen(revision_label)+1), sizeof(char));
+                strncpy(module_version->revision_label, revision_label, strlen((char*)revision_label)+1);
+            }
+            else
+                module_version->revision_label = NULL;
+
+            free(revision);
+            free(module_name);
+            free(revision_label);
+        }
+        else {
+#if debug
+            fprintf(stderr, "%s", "[parse_yangpush_msg_module_revision]module-version node not found in yang-push messaage\n");
+#endif
+            return NULL;
+        }
+    }
+    else {
+#if debug
+        fprintf(stderr, "%s", "[parse_yangpush_msg_module_revision]Error parsing yang-push message\n");
+#endif
+        return NULL;
+    }
+
+    /* Garbage collection */
+    xmlFreeDoc(yangpush_xmldoc);
+
+    return module_version;
+
+}
+
+struct module_version* parse_yangpush_msg_model_revision_by_keyval(const char* message, const char* module_name)
+{
+    if(message == NULL)
+    {
+#if debug
+        fprintf(stderr, "%s", "[parse_yangpush_msg_module_revision]Invalid input parameter\n");
+#endif
+        return NULL;
+    }
+
+    /* Initialization */
+    struct module_version *module_version = NULL;
+    xmlDocPtr yangpush_xmldoc = NULL;
+    xmlNodePtr yangpush_node = NULL, module_version_node = NULL, module_name_node = NULL, 
+                revision_node = NULL, revision_label_node = NULL;
+
+    yangpush_xmldoc = xmlParseDoc((xmlChar*)message); 
+    yangpush_node = xmlDocGetRootElement(yangpush_xmldoc);
+
+    module_version = (struct module_version*)malloc(sizeof(struct module_version));
+    if(yangpush_xmldoc != NULL) { 
+        module_version_node = xml_find_node(yangpush_node, "module-version"); // Find the module-version node
+        if (module_version_node!= NULL) {
+            module_version_node = xml_find_node_by_keyval(module_version_node, "module-name", module_name);
+            module_name_node = xml_find_node(module_version_node, "module-name");
+            char *module_name = xmlNodeGetContent(module_name_node);
+            revision_node = xml_find_node(module_version_node, "revision");
+            char *revision = xmlNodeGetContent(revision_node);
+
+            revision_label_node = xml_find_node(module_version_node, "revision-label");
+            char *revision_label = xmlNodeGetContent(revision_label_node);
+
+            if (module_name != NULL && strlen(module_name) != 0) {
+                module_version->module_name = calloc((strlen(module_name)+1), sizeof(char));
+                strncpy(module_version->module_name, module_name, strlen((char*)module_name)+1);
+            }
+            else
+                module_version->module_name = NULL;
+
+            if (revision != NULL && strlen(revision) != 0){
+                module_version->revision = calloc((strlen(revision)+1), sizeof(char));
+                strncpy(module_version->revision, revision, strlen((char*)revision)+1);
+            }
+            else
+                module_version->revision = NULL;          
+
+            if (revision_label != NULL && strlen(revision_label)!=0) {
+                module_version->revision_label = calloc((strlen(revision_label)+1), sizeof(char));
+                strncpy(module_version->revision_label, revision_label, strlen((char*)revision_label)+1);
+            }
+            else
+                module_version->revision_label = NULL;
+
+            free(revision);
+            free(module_name);
+            free(revision_label);
+        }
+        else {
+#if debug
+            fprintf(stderr, "%s", "[parse_yangpush_msg_module_revision]module-version node not found in yang-push messaage\n");
+#endif
+            return NULL;
+        }
+    }
+    else {
+#if debug
+        fprintf(stderr, "%s", "[parse_yangpush_msg_module_revision]Error parsing yang-push message\n");
+#endif
+        return NULL;
+    }
+
+    /* Garbage collection */
+    xmlFreeDoc(yangpush_xmldoc);
+
+    return module_version;
+
+}
+
+
 
 message_parse_error_code_t validate_message_structure(void *message, xmlNodePtr *subscription_list_ptr, int *sub_id)
 {
@@ -260,10 +420,8 @@ message_parse_error_code_t validate_subscription_started_structure(void *message
                 char *id = (char*)xmlNodeGetContent(current_node);
                 int int_id = atoi(id);
                 *sub_id = int_id; //store the id into sub_id
-                printf("id is %s\n", id);
                 free(id);
                 current_node = xml_find_node(current_node, "datastore-xpath-filter");
-                printf("\nhere %s\n", xmlNodeGetContent(current_node)); 
                 *xpath_node = xmlCopyNodeList(current_node);
             }
             else {

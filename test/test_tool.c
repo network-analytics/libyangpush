@@ -209,13 +209,45 @@ static void test_create_yanglib_element_list(void **state)
     cdada_list_destroy(text1_ietf_yang_library_revision_list);
 }
 
+void test_parse_yangpush_msg_revision(void **state)
+{
+    (void) state;
+    char* ex_yangpush_msg = load_file("../resources/subscription-started.xml");
+    char* ex_yangpush_msg1 = load_file("../resources/subscription-started-new.xml");
+
+    struct module_version *test_module_version = parse_yangpush_msg_model_revision(ex_yangpush_msg); 
+    struct module_version *test_module_version1 = parse_yangpush_msg_model_revision_by_keyval(ex_yangpush_msg1, "huawei-debug"); 
+
+    assert_non_null(test_module_version);
+    assert_string_equal(test_module_version->module_name, "ietf-interfaces");
+    assert_string_equal(test_module_version->revision, "2014-05-08");
+    assert_null(test_module_version->revision_label);
+
+    assert_non_null(test_module_version1);
+    assert_string_equal(test_module_version1->module_name, "huawei-debug");
+    assert_string_equal(test_module_version1->revision, "2024-06-19");
+    assert_string_equal(test_module_version1->revision_label, "1.0.0");
+
+    /* Garbage Collection */
+    free(ex_yangpush_msg);
+    free(test_module_version->module_name);
+    free(test_module_version->revision);
+    free(test_module_version);
+    free(ex_yangpush_msg1);
+    free(test_module_version1->module_name);
+    free(test_module_version1->revision);
+    free(test_module_version1->revision_label);
+    free(test_module_version1);
+}
+
 
 int main(void){
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_djb2),
         cmocka_unit_test(test_find_node),
         cmocka_unit_test(test_validate_message_structure),
-        cmocka_unit_test(test_create_yanglib_element_list)
+        cmocka_unit_test(test_create_yanglib_element_list),
+        cmocka_unit_test(test_parse_yangpush_msg_revision)
     };
     
     return cmocka_run_group_tests(tests, NULL, NULL);

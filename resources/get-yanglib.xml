@@ -40,6 +40,11 @@
         <namespace>urn:sysrepo:yang:sysrepo-factory-default</namespace>
       </module>
       <module>
+        <name>huawei-debug</name>
+        <revision>2024-06-19</revision>
+        <namespace>urn:huawei:yang:huawei-debug</namespace>
+      </module>
+      <module>
         <name>ietf-yang-library</name>
         <revision>2019-01-04</revision>
         <namespace>urn:ietf:params:xml:ns:yang:ietf-yang-library</namespace>

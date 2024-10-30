@@ -1,5 +1,5 @@
 # Docker instruction for netopeer2, with the augmentedby feature implemented
-This folder contains the Dockerfile for building netopeer2, with augmentedby feature implemented. The augmentedby feature is implemented in [sysrepo](https://github.com/Zephyre777/sysrepo.git) and [libyang](https://github.com/Zephyre777/libyang.git) by Zhuoyao Lin during IETF190 hackathon.
+This folder contains the Dockerfile for building netopeer2, with augmentedby feature implemented. The augmentedby feature is implemented in [sysrepo](https://github.com/Zephyre777/sysrepo.git) and [libyang](https://github.com/Zephyre777/libyang.git) by Zhuoyao Lin during IETF119 hackathon.
 This Dockerfile is not yet complete and some configurations in bash need to be done manually. Please see the following instruction for how to configure and launch netopeer2-server and netopeer2-cli.
 
 ## build docker image

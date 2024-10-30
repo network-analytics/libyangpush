@@ -11,6 +11,15 @@ typedef enum
     MESSAGE_STRUCTURE_INVALID
 }message_parse_error_code_t;
 
+struct module_version
+{
+    /* module version information */
+    char* module_name; 
+    char* revision;
+    char* revision_label;
+};
+
+
 /**
  * A hash function used for converting string into a hash value
  * 
@@ -86,3 +95,7 @@ cdada_list_t* parse_yanglib_msg(const char *yanglib_msg, const char *module_name
 message_parse_error_code_t validate_message_structure(void *message, xmlNodePtr *subscription_list_ptr, int *sub_id);
 
 message_parse_error_code_t validate_subscription_started_structure(void *message, xmlNodePtr *xpath_node, int *sub_id);
+
+struct module_version* parse_yangpush_msg_model_revision(const char* message);
+
+struct module_version* parse_yangpush_msg_model_revision_by_keyval(const char* message, const char* module_name);

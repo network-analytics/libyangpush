@@ -1,0 +1,41 @@
+<notification xmlns="urn:ietf:params:xml:ns:netconf:notification:1.0">
+  <eventTime>2024-10-25T07:05:17Z</eventTime>
+  <subscription-started xmlns="urn:ietf:params:xml:ns:yang:ietf-subscribed-notifications">
+    <id>1</id>
+    <datastore xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push"
+      xmlns:ds="urn:ietf:params:xml:ns:yang:ietf-datastores">ds:running</datastore>
+    <datastore-xpath-filter xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push"
+      xmlns:debug="urn:huawei:yang:huawei-debug" xmlns:ifm="urn:huawei:yang:huawei-ifm"
+      xmlns:pic="urn:huawei:yang:huawei-pic" xmlns:ni="urn:huawei:yang:huawei-network-instance"
+      xmlns:l3vpn="urn:huawei:yang:huawei-l3vpn" xmlns:rt="urn:huawei:yang:huawei-routing">
+      /debug:debug/debug:board-resouce-states/debug:board-resouce-state|/debug:debug/debug:cpu-infos/debug:cpu-info|/debug:debug/debug:memory-infos/debug:memory-info|/ifm:ifm/ifm:interfaces/ifm:interface|/ifm:ifm/ifm:interfaces/ifm:interface/ifm:dynamic|/ifm:ifm/ifm:interfaces/ifm:interface/ifm:mib-statistics|/ifm:ifm/ifm:interfaces/ifm:interface/ifm:mib-statistics/pic:eth-port-err-sts|/ni:network-instance/ni:instances/ni:instance/l3vpn:afs/l3vpn:af/rt:routing/rt:routing-manage/rt:topologys/rt:topology/rt:routes/rt:ipv4-prefix-statistics|/ni:network-instance/ni:instances/ni:instance/l3vpn:afs/l3vpn:af/rt:routing/rt:routing-manage/rt:topologys/rt:topology/rt:routes/rt:ipv4-route-statistics/rt:ipv4-route-statistic|/ni:network-instance/ni:instances/ni:instance/l3vpn:afs/l3vpn:af/rt:routing/rt:routing-manage/rt:topologys/rt:topology/rt:routes/rt:ipv6-prefix-statistics|/ni:network-instance/ni:instances/ni:instance/l3vpn:afs/l3vpn:af/rt:routing/rt:routing-manage/rt:topologys/rt:topology/rt:routes/rt:ipv6-route-statistics/rt:ipv6-route-statistic</datastore-xpath-filter>
+    <transport xmlns:unt="urn:ietf:params:xml:ns:yang:ietf-udp-notif-transport">unt:udp-notif</transport>
+    <encoding>encode-json</encoding>
+    <message-publisher-ids xmlns="urn:ietf:params:xml:ns:yang:ietf-distributed-notif">16974828</message-publisher-ids>
+    <message-publisher-ids xmlns="urn:ietf:params:xml:ns:yang:ietf-distributed-notif">16973828</message-publisher-ids>
+    <message-publisher-ids xmlns="urn:ietf:params:xml:ns:yang:ietf-distributed-notif">16974839</message-publisher-ids>
+    <periodic xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push">
+      <period>6000</period>
+    </periodic>
+    <module-version xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push-revision">
+      <module-name>huawei-debug</module-name>
+      <revision>2024-06-19</revision>
+      <revision-label>1.0.0</revision-label>
+    </module-version>
+    <module-version xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push-revision">
+      <module-name>huawei-ifm</module-name>
+      <revision>2024-07-25</revision>
+      <revision-label>1.0.0</revision-label>
+    </module-version>
+    <module-version xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push-revision">
+      <module-name>huawei-pic</module-name>
+      <revision>2024-06-22</revision>
+      <revision-label>1.0.0</revision-label>
+    </module-version>
+    <module-version xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-push-revision">
+      <module-name>huawei-routing</module-name>
+      <revision>2024-07-17</revision>
+      <revision-label>1.0.0</revision-label>
+    </module-version>
+  </subscription-started>
+</notification>

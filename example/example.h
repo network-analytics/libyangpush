@@ -13,7 +13,7 @@
 
 /* SSH 'password' authentication */
 #define SSH_USERNAME "root"
-#define SSH_PASSWORD "admin"
+#define SSH_PASSWORD "netconf"
 
 /* SSH 'public key' authentication */
 #define SSH_PUBLIC_KEY "/root/.ssh/id_rsa.pub"
@@ -21,5 +21,8 @@
 
 // #define PATH_TO_EXAMPLE_MESSAGE "../../resources/push-update.xml"
 #define PATH_TO_EXAMPLE_MESSAGE "../../resources/subscription-started.xml"
+
+// PATH_TO_EXAMPLE_YANGLIB_MSG
+#define PATH_TO_EXAMPLE_YANGLIB_MSG "../../resources/get-yanglib.xml"
 
 #define DEBUG 1
