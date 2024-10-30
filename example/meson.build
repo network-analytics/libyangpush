@@ -8,10 +8,7 @@ project(
   default_options : ['warning_level=3']
 )
 cc = meson.get_compiler('c')
-if meson.get_compiler('c').has_link_argument('-fsanitize=address')
-    add_project_arguments('-fsanitize=address,undefined', language : ['c'])
-    add_project_link_arguments('-fsanitize=address,undefined', language : ['c'])
-endif
+
 project_source_files = [
   'example.c'
 ]
@@ -34,7 +31,7 @@ libcurl_dep = cc.find_library('curl',
 )
 
 libyangpush_dep = cc.find_library('yangpush', 
-  dirs: ['/usr/local/lib64']
+  dirs: ['/usr/local/lib']
 )
 
 project_dependencies = [
@@ -57,3 +54,11 @@ project_target = executable(
   dependencies: [project_dependencies],
   install: false
 )
+
+executable('example_parse_yanglib',
+           'example_parse_yanglib.c', 
+           dependencies:[project_dependencies])
+
+executable('example_parse_yangpush_version',
+           'example_parse_yangpush_version.c', 
+           dependencies:[project_dependencies])
